@@ -1,4 +1,4 @@
-# Rice Leaf Disease Classification
+# Ensemble-Powered Deep Learning for Rice Leaf Disease Diagnosis
 
 &#x20;
 
