@@ -1,0 +1,38 @@
+# Base Configuration for Rice Leaf Disease Classification
+
+# Data settings
+data:
+  image_size: 224
+  batch_size: 32
+  num_workers: 4
+  val_split: 0.1
+  
+# Training settings
+training:
+  num_epochs: 15
+  learning_rate: 0.00005
+  weight_decay: 0.0
+  optimizer: "adam"
+  scheduler: "cosine"
+  
+# Model settings
+model:
+  dropout: 0.2
+  pretrained: false
+  
+# Ensemble settings
+ensemble:
+  voting: "soft"  # Options: soft, hard, weighted
+  weights: null   # For weighted voting, e.g., [0.4, 0.3, 0.3]
+  
+# Output directories
+output:
+  models_dir: "models"
+  logs_dir: "logs"
+  results_dir: "results"
+  
+# Reproducibility
+seed: 42
+
+# Device settings
+device: "auto"  # Options: auto, cuda, cpu
