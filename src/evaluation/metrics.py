@@ -22,15 +22,13 @@ def predict_single(
     device: torch.device,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
-    Make predictions using a single model.
+    Run inference with a single PyTorch model over a validation DataLoader and collect labels, predictions, and predicted probabilities.
     
-    Args:
-        model: PyTorch model
-        val_loader: Validation data loader
-        device: Device to run inference on
-        
     Returns:
-        Tuple of (true_labels, predictions, probabilities)
+        Tuple containing:
+        - y_true (np.ndarray): Ground-truth labels with shape (N,).
+        - y_pred (np.ndarray): Predicted class indices with shape (N,).
+        - y_probs (np.ndarray): Predicted class probabilities with shape (N, num_classes).
     """
     model.to(device)
     model.eval()
@@ -65,16 +63,20 @@ def calculate_metrics(
     num_classes: Optional[int] = None,
 ) -> Dict[str, float]:
     """
-    Calculate classification metrics.
+    Compute common classification metrics and optionally ROC-AUC (one-vs-rest).
     
-    Args:
-        y_true: True labels
-        y_pred: Predicted labels
-        y_probs: Prediction probabilities (optional)
-        num_classes: Number of classes (optional, inferred if not provided)
-        
+    Parameters:
+        y_true (np.ndarray): Ground-truth integer class labels.
+        y_pred (np.ndarray): Predicted integer class labels.
+        y_probs (Optional[np.ndarray]): Class probability estimates with shape (n_samples, n_classes). If provided, ROC-AUC (OvR) will be computed.
+        num_classes (Optional[int]): Number of classes. If omitted and `y_probs` is provided, the number of classes is inferred from `y_true`.
+    
     Returns:
-        Dictionary of metric values
+        Dict[str, float]: Dictionary containing:
+            - "accuracy": overall accuracy.
+            - "precision_macro", "recall_macro", "f1_macro": macro-averaged precision, recall, and F1.
+            - "precision_weighted", "recall_weighted", "f1_weighted": weighted averages for precision, recall, and F1.
+            - "roc_auc_ovr" (optional): macro-averaged ROC-AUC computed in a one-vs-rest fashion when `y_probs` is supplied.
     """
     metrics = {
         "accuracy": accuracy_score(y_true, y_pred),
@@ -108,16 +110,16 @@ def evaluate_model(
     y_probs: Optional[np.ndarray] = None,
 ) -> Dict[str, float]:
     """
-    Evaluate model predictions and print results.
+    Print a formatted evaluation report for classification predictions and return computed metrics.
     
-    Args:
-        y_true: True labels
-        y_pred: Predicted labels
-        class_names: List of class names
-        y_probs: Prediction probabilities (optional)
-        
+    Parameters:
+        y_true (np.ndarray): True class labels.
+        y_pred (np.ndarray): Predicted class labels.
+        class_names (list): Names of classes in the order corresponding to label indices.
+        y_probs (Optional[np.ndarray]): Prediction probabilities or scores for each class; when provided, ROC-AUC (OvR) will be computed if possible.
+    
     Returns:
-        Dictionary of metric values
+        Dict[str, float]: Mapping of metric names to their values (includes accuracy, macro/weighted precision, recall, and F1). May include the key 'roc_auc_ovr' when `y_probs` is supplied and ROC-AUC computation succeeds.
     """
     print("\n" + "=" * 60)
     print("EVALUATION REPORT")

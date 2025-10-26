@@ -9,10 +9,10 @@ import numpy as np
 
 def ensure_dirs(paths: Union[List[str], List[Path]]) -> None:
     """
-    Ensure that directories exist, creating them if necessary.
+    Ensure each path in `paths` exists by creating missing directories, including any necessary parent directories.
     
-    Args:
-        paths: List of directory paths to create
+    Parameters:
+        paths (List[str] | List[Path]): Iterable of directory paths (strings or Path objects) to create if they do not already exist.
     """
     for path in paths:
         os.makedirs(path, exist_ok=True)
@@ -26,14 +26,17 @@ def save_checkpoint(
     filepath: Union[str, Path],
 ) -> None:
     """
-    Save model checkpoint with training state.
+    Save a training checkpoint containing model and optimizer state, the current epoch, and metrics to disk.
     
-    Args:
-        model: PyTorch model
-        optimizer: Optimizer
-        epoch: Current epoch number
-        metrics: Dictionary of metric values
-        filepath: Path to save checkpoint
+    Parameters:
+        model: The PyTorch model whose state_dict will be saved.
+        optimizer: The optimizer whose state_dict will be saved.
+        epoch: The current epoch number to record in the checkpoint.
+        metrics: Mapping of metric names to values to include in the checkpoint.
+        filepath: Destination path (str or Path) where the checkpoint file will be written.
+    
+    The checkpoint is saved as a dictionary with the keys: "epoch", "model_state_dict",
+    "optimizer_state_dict", and "metrics".
     """
     checkpoint = {
         "epoch": epoch,
@@ -51,16 +54,16 @@ def load_checkpoint(
     device: Optional[torch.device] = None,
 ) -> Dict[str, Any]:
     """
-    Load model checkpoint.
+    Load a saved training checkpoint and optionally restore model and optimizer states.
     
-    Args:
-        filepath: Path to checkpoint file
-        model: PyTorch model (optional)
-        optimizer: Optimizer (optional)
-        device: Device to load checkpoint to
-        
+    Parameters:
+        filepath (str | Path): Path to the checkpoint file.
+        model (torch.nn.Module, optional): If provided and the checkpoint contains a `model_state_dict`, load it into this model.
+        optimizer (torch.optim.Optimizer, optional): If provided and the checkpoint contains an `optimizer_state_dict`, load it into this optimizer.
+        device (torch.device, optional): Device to map loaded tensors to; defaults to CPU if not provided.
+    
     Returns:
-        Dictionary containing checkpoint data
+        dict: The checkpoint dictionary loaded from disk (contains keys such as `epoch`, `model_state_dict`, `optimizer_state_dict`, and `metrics` when present).
     """
     if device is None:
         device = torch.device("cpu")
@@ -78,12 +81,12 @@ def load_checkpoint(
 
 def save_history(history: Dict[str, Any], model_name: str, folder: str = "logs") -> None:
     """
-    Save training history to disk.
+    Save training history to a file named "<model_name>_history.npy" in the specified folder.
     
-    Args:
-        history: Dictionary containing training history
-        model_name: Name of the model
-        folder: Directory to save history
+    Parameters:
+        history (Dict[str, Any]): Training history data to persist.
+        model_name (str): Model identifier used to form the history filename.
+        folder (str): Destination directory; created if it does not exist.
     """
     ensure_dirs([folder])
     np.save(os.path.join(folder, f"{model_name}_history.npy"), history)
@@ -91,14 +94,14 @@ def save_history(history: Dict[str, Any], model_name: str, folder: str = "logs")
 
 def load_history(model_name: str, folder: str = "logs") -> Dict[str, Any]:
     """
-    Load training history from disk.
+    Load a model's training history dictionary from a NumPy .npy file.
     
-    Args:
-        model_name: Name of the model
-        folder: Directory containing history
-        
+    Parameters:
+        model_name (str): Base name of the model used to form the filename "<model_name>_history.npy".
+        folder (str): Directory containing the history file (default "logs").
+    
     Returns:
-        Dictionary containing training history
+        dict: Training history dictionary loaded from "<folder>/<model_name>_history.npy".
     """
     path = os.path.join(folder, f"{model_name}_history.npy")
     return np.load(path, allow_pickle=True).item()
@@ -106,12 +109,12 @@ def load_history(model_name: str, folder: str = "logs") -> Dict[str, Any]:
 
 def count_parameters(model: torch.nn.Module) -> int:
     """
-    Count the number of trainable parameters in a model.
+    Count the number of trainable parameters in a PyTorch model.
     
-    Args:
-        model: PyTorch model
-        
+    Parameters:
+        model (torch.nn.Module): Model whose trainable parameters will be counted.
+    
     Returns:
-        Number of trainable parameters
+        int: Total number of parameters with `requires_grad` set to True.
     """
     return sum(p.numel() for p in model.parameters() if p.requires_grad)

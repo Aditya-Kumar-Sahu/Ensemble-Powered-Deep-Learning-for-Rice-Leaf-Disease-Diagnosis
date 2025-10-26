@@ -10,15 +10,15 @@ def get_efficientnet_b0(
     dropout: float = 0.2,
 ) -> nn.Module:
     """
-    Create an EfficientNet-B0 model for rice leaf disease classification.
+    Create an EfficientNet-B0 model configured for rice leaf disease classification.
     
-    Args:
-        num_classes: Number of output classes
-        pretrained: Whether to use pretrained weights
-        dropout: Dropout rate for regularization
-        
+    Parameters:
+        num_classes (int): Number of output classes for the classifier head.
+        pretrained (bool): If True, load ImageNet1K pretrained weights; otherwise start from random initialization.
+        dropout (float): Dropout probability to assign to the classifier's dropout layer if that layer exposes attribute `p`.
+    
     Returns:
-        EfficientNet-B0 model instance
+        nn.Module: EfficientNet-B0 model with its final classifier replaced to produce `num_classes` outputs.
     """
     if pretrained:
         model = models.efficientnet_b0(weights=models.EfficientNet_B0_Weights.IMAGENET1K_V1)

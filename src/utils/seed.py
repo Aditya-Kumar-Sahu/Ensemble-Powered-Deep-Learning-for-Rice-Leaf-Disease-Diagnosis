@@ -7,10 +7,12 @@ import torch
 
 def set_seed(seed: int = 42) -> None:
     """
-    Set random seed for reproducibility across all libraries.
+    Set the global random seed to make experiments reproducible across Python, NumPy, and PyTorch.
     
-    Args:
-        seed: Random seed value
+    If CUDA is available, also seed CUDA RNGs for all devices and configure cuDNN for deterministic behavior with benchmarking disabled.
+    
+    Parameters:
+        seed (int): Integer seed used to initialize RNGs for Python, NumPy, and PyTorch (CPU and, if available, CUDA).
     """
     random.seed(seed)
     np.random.seed(seed)

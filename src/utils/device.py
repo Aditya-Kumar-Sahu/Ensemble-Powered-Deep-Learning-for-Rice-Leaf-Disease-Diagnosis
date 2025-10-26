@@ -6,10 +6,10 @@ import torch
 
 def get_device() -> torch.device:
     """
-    Get the available device (CUDA, MPS, or CPU).
+    Determine the preferred torch device, preferring CUDA, then MPS, then CPU.
     
     Returns:
-        torch.device: The device to use for computation
+        torch.device: The selected device — 'cuda' if CUDA is available, 'mps' if MPS is available, otherwise 'cpu'.
     """
     if torch.cuda.is_available():
         return torch.device("cuda")
@@ -20,7 +20,11 @@ def get_device() -> torch.device:
 
 
 def clear_gpu_cache() -> None:
-    """Free GPU memory by clearing cache and running garbage collection."""
+    """
+    Free GPU memory resources by running garbage collection and clearing the CUDA cache when available.
+    
+    This triggers a Python garbage collection pass and empties PyTorch's CUDA cache if CUDA is available; it has no CUDA-specific effect on systems without CUDA.
+    """
     gc.collect()
     if torch.cuda.is_available():
         torch.cuda.empty_cache()

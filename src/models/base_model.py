@@ -24,19 +24,19 @@ def get_model(
     dropout: float = 0.2,
 ) -> nn.Module:
     """
-    Factory function to create different model architectures.
+    Create a registered model architecture by name.
     
     Args:
-        model_name: Name of the model architecture
-        num_classes: Number of output classes
-        pretrained: Whether to use pretrained weights
-        dropout: Dropout rate for regularization
-        
+        model_name (str): Case-insensitive name of the model architecture to instantiate (e.g., "resnet50", "mobilenetv2").
+        num_classes (int): Number of output classes for the model head.
+        pretrained (bool): Whether to load pretrained weights.
+        dropout (float): Dropout probability applied to the model's classifier head.
+    
     Returns:
-        PyTorch model instance
-        
+        nn.Module: Instantiated PyTorch model configured with the given parameters.
+    
     Raises:
-        ValueError: If model_name is not supported
+        ValueError: If `model_name` is not found among available models.
     """
     model_name_lower = model_name.lower()
     
@@ -53,9 +53,9 @@ def get_model(
 
 def list_available_models() -> list:
     """
-    List all available model architectures.
+    List available model architecture names.
     
     Returns:
-        List of available model names
+        list: Available model names as strings.
     """
     return list(MODEL_REGISTRY.keys())

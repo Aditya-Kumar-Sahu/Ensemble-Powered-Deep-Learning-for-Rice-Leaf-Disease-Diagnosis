@@ -12,15 +12,15 @@ def setup_logger(
     log_file: Optional[str] = None,
 ) -> logging.Logger:
     """
-    Set up a logger with console and optional file output.
+    Create and return a logger configured with a console handler and an optional file handler.
     
-    Args:
-        name: Logger name
-        level: Logging level
-        log_file: Optional path to log file
-        
+    Parameters:
+        name (str): Logger name to create or retrieve.
+        level (int): Logging level applied to the logger and its handlers.
+        log_file (Optional[str]): Path to a file to write logs to; if provided, the file's parent directory will be created if it does not exist.
+    
     Returns:
-        Configured logger instance
+        logging.Logger: The configured logger instance with a StreamHandler writing to stdout and, when requested, a FileHandler writing to `log_file`.
     """
     logger = logging.getLogger(name)
     logger.setLevel(level)

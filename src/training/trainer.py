@@ -26,16 +26,16 @@ class Trainer:
         scheduler: Optional[torch.optim.lr_scheduler._LRScheduler] = None,
     ):
         """
-        Initialize the trainer.
+        Create a Trainer that manages training and validation loops, history tracking, device placement, and optional learning-rate scheduling.
         
-        Args:
-            model: PyTorch model
-            train_loader: Training data loader
-            val_loader: Validation data loader
-            criterion: Loss function
-            optimizer: Optimizer
-            device: Device to train on
-            scheduler: Optional learning rate scheduler
+        Parameters:
+            model: The PyTorch model to train.
+            train_loader: DataLoader providing training batches.
+            val_loader: DataLoader providing validation batches.
+            criterion: Loss function used to compute training/validation loss.
+            optimizer: Optimizer used to update model parameters.
+            device: Device for computation; if None, a default device is selected automatically.
+            scheduler: Optional learning-rate scheduler applied during training.
         """
         self.model = model
         self.train_loader = train_loader
@@ -57,10 +57,11 @@ class Trainer:
     
     def train_epoch(self) -> Tuple[float, float]:
         """
-        Train for one epoch.
+        Performs one training epoch over the training DataLoader and updates the model parameters.
         
         Returns:
-            Tuple of (average_loss, accuracy)
+            epoch_loss (float): Average loss per sample over the epoch.
+            epoch_acc (float): Accuracy percentage (0–100) over the epoch.
         """
         self.model.train()
         running_loss = 0.0
@@ -102,10 +103,11 @@ class Trainer:
     
     def validate_epoch(self) -> Tuple[float, float]:
         """
-        Validate for one epoch.
+        Run one validation epoch over the validation DataLoader and compute average loss and accuracy.
         
         Returns:
-            Tuple of (average_loss, accuracy)
+            epoch_loss (float): Average loss per sample over the validation set.
+            epoch_acc (float): Accuracy as a percentage (0.0–100.0) computed from model predictions.
         """
         self.model.eval()
         running_loss = 0.0
@@ -146,15 +148,16 @@ class Trainer:
         model_name: str = "model",
     ) -> Dict:
         """
-        Train the model for multiple epochs.
+        Run training for a specified number of epochs, track metrics, save the best model checkpoint, and persist training history.
         
-        Args:
-            num_epochs: Number of epochs to train
-            save_dir: Directory to save checkpoints
-            model_name: Name for saving the model
-            
+        Parameters:
+            num_epochs (int): Number of epochs to run.
+            save_dir (str): Directory where the best model checkpoint will be saved (default "models").
+            model_name (str): Base filename to use when saving the model and history (default "model").
+        
         Returns:
-            Training history dictionary
+            history (Dict): Dictionary with per-epoch lists ('train_loss', 'val_loss', 'train_acc', 'val_acc', 'learning_rates')
+                and metadata fields ('training_time', 'params', 'best_val_acc').
         """
         ensure_dirs([save_dir, "logs"])
         best_val_acc = 0.0
@@ -226,19 +229,19 @@ def train_model(
     device: Optional[torch.device] = None,
 ) -> Dict:
     """
-    Simplified training function compatible with original notebook code.
+    Run training with common defaults and return the training history.
     
-    Args:
-        model: PyTorch model
-        train_loader: Training data loader
-        val_loader: Validation data loader
-        model_name: Name for saving the model
-        num_epochs: Number of epochs to train
-        lr: Learning rate
-        device: Device to train on
-        
+    Parameters:
+        model (nn.Module): Model to train.
+        train_loader (DataLoader): Training data loader.
+        val_loader (DataLoader): Validation data loader.
+        model_name (str): Base name used when saving the best model and logs.
+        num_epochs (int): Number of epochs to train.
+        lr (float): Initial learning rate for the Adam optimizer.
+        device (torch.device, optional): Device to run training on; if None, a default device is chosen.
+    
     Returns:
-        Training history dictionary
+        dict: Training history containing per-epoch losses, accuracies, learning rates, and metadata.
     """
     if device is None:
         device = get_device()

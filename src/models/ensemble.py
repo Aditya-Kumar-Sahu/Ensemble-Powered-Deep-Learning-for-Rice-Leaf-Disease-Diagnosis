@@ -23,12 +23,19 @@ class EnsembleModel(nn.Module):
         weights: List[float] = None,
     ):
         """
-        Initialize the ensemble model.
+        Create an ensemble wrapper that combines multiple base models using a specified voting strategy.
         
-        Args:
-            models: List of base models
-            voting: Voting strategy ("soft", "hard", or "weighted")
-            weights: Optional weights for weighted voting (must sum to 1.0)
+        Parameters:
+            models (List[nn.Module]): Base models to include in the ensemble; stored as an nn.ModuleList.
+            voting (Literal["soft", "hard", "weighted"]): Voting strategy to aggregate model outputs. Supported values:
+                "soft" — average per-model probability distributions;
+                "hard" — majority vote on per-model class predictions;
+                "weighted" — weighted average of per-model probability distributions.
+            weights (List[float], optional): Per-model weights for "weighted" voting. If omitted when
+                voting is "weighted", equal weights are used. When provided, the number of weights must
+                equal the number of models and their sum must equal 1.0 within a tolerance of 1e-6.
+                Validated weights are stored as a torch.float32 tensor. For non-"weighted" voting,
+                the weights attribute is set to None.
         """
         super().__init__()
         self.models = nn.ModuleList(models)
@@ -48,13 +55,16 @@ class EnsembleModel(nn.Module):
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Forward pass through the ensemble.
+        Compute ensemble logits from the registered base models using the configured voting strategy.
         
-        Args:
-            x: Input tensor
-            
+        Parameters:
+            x (torch.Tensor): Input batch passed to each base model (batch dimension first). Each base model must accept x and produce logits over classes.
+        
         Returns:
-            Ensemble predictions
+            torch.Tensor: Logits with shape [batch_size, num_classes]. For "soft" and "weighted" voting this is the log of the averaged (or weighted-averaged) class probabilities; for "hard" voting this is the log of a one-hot encoding of the majority-vote class.
+        
+        Raises:
+            ValueError: If self.voting is not "soft", "weighted", or "hard".
         """
         outputs = []
         
@@ -99,16 +109,16 @@ def load_ensemble_models(
     device: torch.device,
 ) -> List[nn.Module]:
     """
-    Load multiple models from checkpoints.
+    Load and return models instantiated for the given names by restoring their checkpoints.
     
-    Args:
-        model_names: List of model names
-        num_classes: Number of output classes
-        checkpoint_dir: Directory containing model checkpoints
-        device: Device to load models to
-        
+    Parameters:
+        model_names (List[str]): Names of models to instantiate and load.
+        num_classes (int): Number of output classes for each model constructor.
+        checkpoint_dir (str): Directory containing model checkpoint files named "<model_name>.pth".
+        device (torch.device): Device to place each loaded model on.
+    
     Returns:
-        List of loaded models
+        List[nn.Module]: List of models with their state restored, moved to `device`, and set to evaluation mode.
     """
     models = []
     
@@ -133,19 +143,22 @@ def predict_ensemble(
     weights: List[float] = None,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Make predictions using an ensemble of models.
+    Generate ensemble predictions for a validation dataset using soft, hard, or weighted voting.
     
-    Args:
-        val_loader: Validation data loader
-        model_names: List of model names
-        num_classes: Number of output classes
-        checkpoint_dir: Directory containing model checkpoints
-        device: Device to run inference on
-        voting: Voting strategy
-        weights: Optional weights for weighted voting
-        
+    Parameters:
+        val_loader (DataLoader): Validation data loader yielding (inputs, labels) batches.
+        model_names (List[str]): Names of base models; each name is used to load a corresponding checkpoint file from checkpoint_dir.
+        num_classes (int): Number of output classes for each model.
+        checkpoint_dir (str): Directory containing model checkpoint files (default: "models").
+        device (torch.device | None): Device to run inference on; if None, CUDA is used if available, otherwise CPU.
+        voting (str): Voting strategy to combine model outputs. One of "soft", "hard", or "weighted".
+            - "soft": average per-model softmax probabilities.
+            - "hard": majority vote on per-model argmax predictions.
+            - "weighted": weighted sum of per-model softmax probabilities using `weights`.
+        weights (List[float] | None): Per-model weights for "weighted" voting. Must have length equal to the number of models and sum to 1.0.
+    
     Returns:
-        Tuple of (true_labels, predictions)
+        Tuple[np.ndarray, np.ndarray]: A tuple (true_labels, predictions) where both are 1-D NumPy arrays of shape (N,) containing ground-truth labels and ensemble-predicted class indices for all samples in val_loader.
     """
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

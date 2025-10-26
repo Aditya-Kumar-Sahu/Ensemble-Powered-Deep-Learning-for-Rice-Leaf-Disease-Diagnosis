@@ -19,12 +19,25 @@ from src.utils import set_seed, get_device, setup_logger, ensure_dirs
 
 
 def load_config(config_path: str) -> dict:
-    """Load configuration from YAML file."""
+    """
+    Load and parse the YAML configuration file at the given path.
+    
+    Parameters:
+        config_path (str): Path to the YAML configuration file.
+    
+    Returns:
+        dict: Parsed configuration mapping from the YAML file.
+    """
     with open(config_path, "r") as f:
         return yaml.safe_load(f)
 
 
 def main():
+    """
+    Orchestrate end-to-end training of a rice leaf disease classification model using CLI arguments and a YAML configuration.
+    
+    Loads configuration, applies command-line overrides for epochs, batch size, and learning rate, initializes randomness and logging, selects the compute device, ensures output directories, prepares data loaders and model, constructs optimizer, scheduler, and loss, runs the training loop via Trainer, and logs final metrics and model save location.
+    """
     parser = argparse.ArgumentParser(
         description="Train rice leaf disease classification models"
     )

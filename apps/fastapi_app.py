@@ -88,7 +88,15 @@ class RiceDiseaseAPI:
     """Rice disease classification API."""
     
     def __init__(self, config_path: str = "configs/base_config.yaml"):
-        """Initialize the API."""
+        """
+        Create a RiceDiseaseAPI instance configured from the given YAML file.
+        
+        Parameters:
+            config_path (str): Path to a YAML configuration file. If the file is missing or unreadable, a minimal default configuration is used.
+        
+        Description:
+            Initializes runtime state including the compute device, loaded configuration, model registry, validation image transform, and class name list.
+        """
         self.device = get_device()
         self.config = self.load_config(config_path)
         self.models = {}
@@ -96,7 +104,15 @@ class RiceDiseaseAPI:
         self.class_names = self.get_class_names()
         
     def load_config(self, config_path: str) -> dict:
-        """Load configuration."""
+        """
+        Load configuration from a YAML file, falling back to a minimal default if the file is missing.
+        
+        Parameters:
+            config_path (str): Path to the YAML configuration file.
+        
+        Returns:
+            dict: Configuration dictionary parsed from the YAML file, or a default config with image size 224 if the file is not found.
+        """
         try:
             with open(config_path, "r") as f:
                 return yaml.safe_load(f)
@@ -107,7 +123,14 @@ class RiceDiseaseAPI:
             }
     
     def get_class_names(self) -> list:
-        """Get class names."""
+        """
+        Return the list of disease class names used by the classifier.
+        
+        This is a static, ordered list mapping model output indices to human-readable class labels.
+        
+        Returns:
+            List[str]: Class names in the order corresponding to model output indices.
+        """
         # Placeholder - should be loaded from config or dataset
         return [
             "BacterialLeafBlight",
@@ -117,7 +140,18 @@ class RiceDiseaseAPI:
         ]
     
     def load_model(self, model_name: str, checkpoint_path: str):
-        """Load a trained model."""
+        """
+        Load and cache a model for the given name from a checkpoint file.
+        
+        If the model is already cached in self.models, the cached instance is returned; otherwise the model is constructed for the configured number of classes, its state dict is loaded from checkpoint_path, moved to the configured device, set to evaluation mode, cached, and returned.
+        
+        Parameters:
+            model_name (str): Identifier of the model architecture/key used to construct and cache the model.
+            checkpoint_path (str): Filesystem path to the checkpoint containing the model's state dict.
+        
+        Returns:
+            torch.nn.Module: The loaded PyTorch model instance moved to the configured device and set to evaluation mode.
+        """
         if model_name not in self.models:
             num_classes = len(self.class_names)
             model = get_model(model_name, num_classes)
@@ -136,15 +170,19 @@ class RiceDiseaseAPI:
         top_k: int = 5,
     ) -> dict:
         """
-        Predict disease from image.
+        Predict the disease class and associated probabilities for a given image using a specified model.
         
-        Args:
-            image: PIL Image
-            model_name: Name of model to use
-            top_k: Number of top predictions to return
-            
+        Parameters:
+            image (PIL.Image.Image): Input image to classify; expected in RGB.
+            model_name (str): Name of the model to use (selects which pretrained model is loaded).
+            top_k (int): Number of top class predictions to include in the `top_predictions` map; capped at the number of available classes.
+        
         Returns:
-            Dictionary with prediction results
+            dict: Mapping with keys:
+                - "predicted_class" (str): Class with highest probability.
+                - "confidence" (float): Probability of the predicted class (0.0–1.0).
+                - "top_predictions" (Dict[str, float]): Top `top_k` class names mapped to their probabilities.
+                - "model_used" (str): The model name that produced the prediction.
         """
         # Load model
         checkpoint_path = f"models/{model_name}.pth"
@@ -182,14 +220,26 @@ class RiceDiseaseAPI:
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize API on startup."""
+    """
+    Create and assign the application classifier used for predictions.
+    
+    Initializes a RiceDiseaseAPI instance and stores it in the module-level variable `classifier` for use by request handlers.
+    """
     global classifier
     classifier = RiceDiseaseAPI()
 
 
 @app.get("/", response_model=dict)
 async def root():
-    """Root endpoint."""
+    """
+    Return basic API metadata and available endpoints.
+    
+    Returns:
+        info (dict): Metadata containing:
+            - message (str): Brief API title.
+            - version (str): API version.
+            - endpoints (dict): Mapping of endpoint names to their paths, including "health", "predict", "disease_info", and "models".
+    """
     return {
         "message": "Rice Leaf Disease Classification API",
         "version": "1.0.0",
@@ -204,7 +254,15 @@ async def root():
 
 @app.get("/health", response_model=HealthCheck)
 async def health_check():
-    """Health check endpoint."""
+    """
+    Return current service health status and runtime metadata.
+    
+    Returns:
+        dict: A mapping with keys:
+            - "status": `"healthy"` when the service is operational.
+            - "models_loaded": list of loaded model names.
+            - "device": string representation of the device used for inference.
+    """
     return {
         "status": "healthy",
         "models_loaded": list(classifier.models.keys()),
@@ -214,7 +272,12 @@ async def health_check():
 
 @app.get("/models", response_model=List[str])
 async def list_models():
-    """List available models."""
+    """
+    List available model names.
+    
+    Returns:
+        List[str]: Available model names.
+    """
     return ["resnet50", "mobilenetv2", "efficientnetb0"]
 
 
@@ -225,15 +288,20 @@ async def predict(
     top_k: int = Query(5, ge=1, le=10, description="Number of top predictions"),
 ):
     """
-    Predict rice leaf disease from image.
+    Handle an uploaded image and return rice leaf disease predictions from the selected model.
     
-    Args:
-        file: Uploaded image file
-        model: Model name (resnet50, mobilenetv2, or efficientnetb0)
-        top_k: Number of top predictions to return
-        
+    Parameters:
+        file: Uploaded image file; must be a valid image readable by Pillow (will be converted to RGB).
+        model: Model name to use for prediction; must be one of "resnet50", "mobilenetv2", or "efficientnetb0".
+        top_k: Number of top predictions to include (1–10).
+    
     Returns:
-        Prediction results
+        dict: Prediction result with keys `predicted_class` (str), `confidence` (float), `top_predictions` (Dict[str, float]), and `model_used` (str).
+    
+    Raises:
+        HTTPException: 400 if the model name is invalid or the uploaded file is not a valid image.
+        HTTPException: 404 if the model checkpoint is not found.
+        HTTPException: 500 for other prediction errors.
     """
     # Validate model name
     if model not in ["resnet50", "mobilenetv2", "efficientnetb0"]:
@@ -271,13 +339,16 @@ async def predict(
 @app.get("/disease-info/{disease_name}", response_model=DiseaseInfo)
 async def get_disease_info(disease_name: str):
     """
-    Get information about a specific disease.
+    Return detailed information for a disease from the in-memory disease database.
     
-    Args:
-        disease_name: Name of the disease
-        
+    Parameters:
+        disease_name (str): Disease key to look up in DISEASE_DATABASE (must match exactly, case-sensitive).
+    
     Returns:
-        Disease information
+        dict: A mapping with keys "name", "description", "treatment", and "prevention".
+    
+    Raises:
+        HTTPException: 404 if the disease_name is not found in DISEASE_DATABASE.
     """
     if disease_name not in DISEASE_DATABASE:
         raise HTTPException(
@@ -296,12 +367,21 @@ async def get_disease_info(disease_name: str):
 
 @app.get("/classes", response_model=List[str])
 async def list_classes():
-    """List all disease classes."""
+    """
+    Retrieve the list of disease class names.
+    
+    Returns:
+        List[str]: Class name strings used by the classifier.
+    """
     return classifier.class_names
 
 
 def main():
-    """Main function to run the API server."""
+    """
+    Start the Uvicorn server for the FastAPI application.
+    
+    Runs the app on host 0.0.0.0 and port 8000 with log level set to "info".
+    """
     uvicorn.run(
         app,
         host="0.0.0.0",

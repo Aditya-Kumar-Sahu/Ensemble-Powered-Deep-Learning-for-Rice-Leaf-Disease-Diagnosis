@@ -13,15 +13,15 @@ def generate_classification_report(
     class_names: List[str],
 ) -> str:
     """
-    Generate a detailed classification report.
+    Create a formatted classification report string containing per-class precision, recall, f1-score, and support.
     
-    Args:
-        y_true: True labels
-        y_pred: Predicted labels
-        class_names: List of class names
-        
+    Parameters:
+        y_true: Array of true class labels.
+        y_pred: Array of predicted class labels.
+        class_names: Ordered list of class names corresponding to label indices; used as target names in the report.
+    
     Returns:
-        Classification report as string
+        A string with the classification report including per-class metrics and aggregated averages (accuracy, macro avg, weighted avg), formatted with four decimal digits and treating zero-division cases as 0.
     """
     report = classification_report(
         y_true,
@@ -38,11 +38,13 @@ def print_model_summary(
     log_folder: str = "logs",
 ) -> None:
     """
-    Print summary of trained models.
+    Print a formatted summary table of trained models' parameters, training time, and best validation accuracy.
     
-    Args:
-        model_names: List of model names
-        log_folder: Directory containing training logs
+    For each model in `model_names`, attempts to load its training history from `log_folder` and prints a row containing the model name, parameter count, total training time in seconds, and best validation accuracy as a percentage. If a model's history file is missing, prints "N/A" for that model's fields.
+    
+    Parameters:
+        model_names (List[str]): Names of the models to include in the summary.
+        log_folder (str): Directory containing training history files (default "logs").
     """
     print("\n" + "=" * 80)
     print("MODEL SUMMARY")

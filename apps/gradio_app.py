@@ -49,7 +49,14 @@ class RiceDiseaseClassifier:
     """Rice disease classification application."""
     
     def __init__(self, config_path: str = "configs/base_config.yaml"):
-        """Initialize the classifier."""
+        """
+        Create a RiceDiseaseClassifier instance and initialize runtime resources.
+        
+        Initializes the computation device, loads configuration from `config_path`, prepares the image validation transform, initializes an empty model cache, and retrieves class names.
+        
+        Parameters:
+        	config_path (str): Path to the YAML configuration file used to load settings (e.g., image size and other data/model options).
+        """
         self.device = get_device()
         self.config = self.load_config(config_path)
         self.models = {}
@@ -57,12 +64,27 @@ class RiceDiseaseClassifier:
         self.class_names = self.get_class_names()
         
     def load_config(self, config_path: str) -> dict:
-        """Load configuration."""
+        """
+        Load a YAML configuration file from disk and parse it into a dictionary.
+        
+        Parameters:
+            config_path (str): Path to the YAML configuration file.
+        
+        Returns:
+            dict: Parsed configuration mapping from the YAML file.
+        """
         with open(config_path, "r") as f:
             return yaml.safe_load(f)
     
     def get_class_names(self) -> list:
-        """Get class names. This should be loaded from dataset or config."""
+        """
+        List of class names used by the classifier.
+        
+        These names correspond to model output indices and should match the dataset's label order.
+        
+        Returns:
+            class_names (list[str]): Ordered list of class label strings.
+        """
         # Placeholder - replace with actual class names from your dataset
         return [
             "BacterialLeafBlight",
@@ -73,7 +95,16 @@ class RiceDiseaseClassifier:
         ]
     
     def load_model(self, model_name: str, checkpoint_path: str):
-        """Load a trained model."""
+        """
+        Load and cache a model architecture, restore its weights from a checkpoint, move it to the configured device, and set it to evaluation mode.
+        
+        Parameters:
+            model_name (str): Identifier of the model architecture to instantiate (used by get_model).
+            checkpoint_path (str): Filesystem path to a PyTorch state dict to load into the model.
+        
+        Returns:
+            torch.nn.Module: The loaded model instance placed on the classifier's device and set to eval mode.
+        """
         if model_name not in self.models:
             num_classes = len(self.class_names)
             model = get_model(model_name, num_classes)
@@ -85,14 +116,17 @@ class RiceDiseaseClassifier:
     
     def predict(self, image: Image.Image, model_name: str = "resnet50") -> dict:
         """
-        Predict disease from image.
+        Predict the rice leaf disease from a PIL Image using a specified model.
         
-        Args:
-            image: PIL Image
-            model_name: Name of model to use
-            
+        Parameters:
+            image (PIL.Image.Image): Input image of a rice leaf.
+            model_name (str): Model identifier to use for inference (e.g., "resnet50").
+        
         Returns:
-            Dictionary with prediction results
+            dict: A dictionary with prediction results containing:
+                - "prediction" (str): Predicted class name.
+                - "confidence" (float): Probability of the predicted class (0.0 to 1.0).
+                - "top5" (dict): Mapping of up to five class names to their probability scores.
         """
         # Load model if not already loaded
         checkpoint_path = f"models/{model_name}.pth"
@@ -126,7 +160,21 @@ class RiceDiseaseClassifier:
         return results
     
     def format_output(self, results: dict) -> tuple:
-        """Format output for Gradio."""
+        """
+        Builds a Markdown-formatted prediction summary and returns it alongside the top-5 predictions.
+        
+        Parameters:
+            results (dict): Result dictionary produced by predict containing:
+                - "prediction" (str): predicted class name.
+                - "confidence" (float): confidence for the top prediction (0.0–1.0).
+                - "top5" (dict): mapping of class names to their probabilities.
+        
+        Returns:
+            tuple: (prediction_text, top5_dict)
+                prediction_text (str): Markdown string with the predicted disease, confidence percentage,
+                    and, if available in DISEASE_INFO, Description, Treatment, and Prevention sections.
+                top5_dict (dict): the "top5" mapping from the input results (class name -> probability).
+        """
         prediction = results["prediction"]
         confidence = results["confidence"]
         
@@ -148,11 +196,28 @@ class RiceDiseaseClassifier:
 
 
 def create_app():
-    """Create Gradio application."""
+    """
+    Create and configure the Gradio web application for rice leaf disease classification.
+    
+    Sets up the UI (image input, model choice, analyze button, prediction display, and top-5 label),
+    binds a prediction wrapper that uses RiceDiseaseClassifier, and includes informational text.
+    
+    Returns:
+        app (gr.Blocks): A configured Gradio Blocks application ready to be launched.
+    """
     classifier = RiceDiseaseClassifier()
     
     def predict_wrapper(image, model_choice):
-        """Wrapper for prediction."""
+        """
+        Handle an uploaded image and model selection, perform classification, and return formatted UI-ready results.
+        
+        Parameters:
+            image (PIL.Image.Image or None): Uploaded image to classify; if None, no prediction is performed.
+            model_choice (str): Name of the model to use (e.g., "resnet50", "mobilenetv2", "efficientnetb0").
+        
+        Returns:
+            tuple: A pair (prediction_text, top5_dict). `prediction_text` is a user-facing message or Markdown containing the main prediction and details; `top5_dict` maps top-5 class names to their probabilities. If no image is provided or an error occurs, `prediction_text` contains a guidance or error message and `top5_dict` is an empty dict.
+        """
         if image is None:
             return "Please upload an image.", {}
         
@@ -231,7 +296,11 @@ def create_app():
 
 
 def main():
-    """Main function."""
+    """
+    Start and launch the Gradio web application.
+    
+    Creates the app via create_app() and starts the Gradio server listening on 0.0.0.0:7860 without public sharing.
+    """
     app = create_app()
     app.launch(
         server_name="0.0.0.0",

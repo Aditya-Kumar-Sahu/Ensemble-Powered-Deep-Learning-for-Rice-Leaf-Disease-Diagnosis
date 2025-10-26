@@ -20,14 +20,14 @@ def plot_confusion_matrix(
     figsize: tuple = (10, 8),
 ) -> None:
     """
-    Plot confusion matrix.
+    Create and display a confusion matrix heatmap for the provided true and predicted labels.
     
-    Args:
-        y_true: True labels
-        y_pred: Predicted labels
-        class_names: List of class names
-        save_path: Optional path to save the figure
-        figsize: Figure size
+    Parameters:
+        y_true (np.ndarray): True class labels.
+        y_pred (np.ndarray): Predicted class labels.
+        class_names (List[str]): Ordered list of class names used as tick labels for both axes.
+        save_path (Optional[str]): If provided, save the figure to this path; the plot is displayed regardless.
+        figsize (tuple): Figure size passed to matplotlib.
     """
     cm = confusion_matrix(y_true, y_pred)
     
@@ -60,13 +60,15 @@ def plot_training_history(
     figsize: tuple = (12, 5),
 ) -> None:
     """
-    Plot training history.
+    Plot one or more training metrics (train vs validation) over epochs.
     
-    Args:
-        history: Training history dictionary
-        metrics: List of metrics to plot
-        save_path: Optional path to save the figure
-        figsize: Figure size
+    For each metric in `metrics`, looks for `train_<metric>` and `val_<metric>` keys in `history` and, if both are present, plots their values across epochs with labels, a title, legend, and grid. If `save_path` is provided, saves the figure to that path. The figure is displayed after plotting.
+    
+    Parameters:
+        history (dict): Mapping containing training histories, expected keys like "train_loss", "val_loss", etc.
+        metrics (List[str]): Metrics to plot; for each metric the function looks for `train_<metric>` and `val_<metric>` in `history`.
+        save_path (Optional[str]): Path to save the generated figure; when omitted the figure is not saved.
+        figsize (tuple): Matplotlib figure size.
     """
     num_metrics = len(metrics)
     fig, axes = plt.subplots(1, num_metrics, figsize=figsize)
@@ -107,14 +109,14 @@ def compare_models(
     figsize: tuple = (12, 6),
 ) -> None:
     """
-    Compare training logs of multiple models.
+    Plot a comparison of a specified training metric across multiple model histories.
     
-    Args:
-        model_names: List of model names
-        metric: Metric to compare ("loss" or "acc")
-        log_folder: Directory containing training logs
-        save_path: Optional path to save the figure
-        figsize: Figure size
+    Parameters:
+        model_names (List[str]): Identifiers of models whose histories will be compared.
+        metric (str): Metric to plot; expected values are "loss" or "acc".
+        log_folder (str): Directory where each model's history is stored and loaded from.
+        save_path (Optional[str]): If provided, path to save the resulting figure.
+        figsize (tuple): Figure size (width, height) in inches.
     """
     plt.figure(figsize=figsize)
     

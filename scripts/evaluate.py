@@ -25,12 +25,25 @@ from src.utils import set_seed, get_device, setup_logger
 
 
 def load_config(config_path: str) -> dict:
-    """Load configuration from YAML file."""
+    """
+    Load runtime configuration from a YAML file.
+    
+    Parameters:
+        config_path (str): Path to the YAML configuration file.
+    
+    Returns:
+        config (dict): Parsed configuration dictionary.
+    """
     with open(config_path, "r") as f:
         return yaml.safe_load(f)
 
 
 def main():
+    """
+    Run the evaluation workflow for rice leaf disease classification models using command-line arguments.
+    
+    Parses CLI options, loads configuration and dataset, evaluates either a single specified model or an ensemble of models, computes metrics, saves a confusion matrix image and a classification report to the output directory, and prints the classification report and model summary to stdout. Requires either the --model or --ensemble flag to be provided; uses --models-dir for checkpoints and --config for the YAML configuration.
+    """
     parser = argparse.ArgumentParser(
         description="Evaluate rice leaf disease classification models"
     )
