@@ -12,19 +12,23 @@ def get_scheduler(
     **kwargs: Dict[str, Any],
 ) -> Optional[lr_scheduler._LRScheduler]:
     """
-    Get learning rate scheduler.
+    Create a learning-rate scheduler for the given optimizer based on the provided scheduler_name.
     
-    Args:
-        optimizer: Optimizer instance
-        scheduler_name: Name of scheduler ("cosine", "step", "plateau", "none")
-        num_epochs: Total number of training epochs
-        **kwargs: Additional scheduler-specific arguments
-        
+    Parameters:
+        optimizer: Optimizer instance to attach the scheduler to.
+        scheduler_name: One of "cosine", "step", "plateau", "exponential", or "none" (case-insensitive).
+            - "cosine": accepts `T_max` (default num_epochs) and `eta_min` (default 0).
+            - "step": accepts `step_size` (default 30) and `gamma` (default 0.1).
+            - "plateau": accepts `mode` (default "min"), `factor` (default 0.1), and `patience` (default 10).
+            - "exponential": accepts `gamma` (default 0.95).
+        num_epochs: Total number of training epochs; used as the default `T_max` for the cosine scheduler.
+        **kwargs: Additional scheduler-specific keyword arguments; defaults shown above are used when keys are absent.
+    
     Returns:
-        Scheduler instance or None
-        
+        Scheduler instance attached to `optimizer`, or `None` if `scheduler_name` is "none".
+    
     Raises:
-        ValueError: If scheduler_name is not supported
+        ValueError: If `scheduler_name` is not one of the supported options.
     """
     scheduler_name = scheduler_name.lower()
     

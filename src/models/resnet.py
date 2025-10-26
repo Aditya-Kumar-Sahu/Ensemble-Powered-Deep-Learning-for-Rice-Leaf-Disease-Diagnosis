@@ -10,15 +10,15 @@ def get_resnet50(
     dropout: float = 0.0,
 ) -> nn.Module:
     """
-    Create a ResNet50 model for rice leaf disease classification.
+    Create a ResNet-50 model configured for classification.
     
-    Args:
-        num_classes: Number of output classes
-        pretrained: Whether to use pretrained weights
-        dropout: Dropout rate for regularization (currently unused for ResNet)
-        
+    Parameters:
+        num_classes (int): Number of target output classes for the final layer.
+        pretrained (bool): If True, initialize weights from ImageNet; otherwise random initialization.
+        dropout (float): Accepted for API compatibility; not used by this function.
+    
     Returns:
-        ResNet50 model instance
+        nn.Module: ResNet-50 model with its final fully connected layer replaced to output `num_classes`.
     """
     if pretrained:
         model = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V1)

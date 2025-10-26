@@ -19,13 +19,26 @@ def num_classes():
 
 @pytest.fixture
 def batch_size():
-    """Fixture for batch size."""
+    """
+    Provide the batch size used by the test fixtures.
+    
+    Returns:
+        int: Batch size value (4).
+    """
     return 4
 
 
 @pytest.fixture
 def input_tensor(batch_size):
-    """Fixture for input tensor."""
+    """
+    Provide a random image batch tensor for model tests.
+    
+    Parameters:
+        batch_size (int): Number of samples in the batch.
+    
+    Returns:
+        torch.Tensor: Tensor of shape (batch_size, 3, 224, 224) with values sampled from a standard normal distribution.
+    """
     return torch.randn(batch_size, 3, 224, 224)
 
 
@@ -63,7 +76,14 @@ def test_get_efficientnet_b0(num_classes, input_tensor, batch_size):
 
 
 def test_get_model_factory(num_classes, input_tensor, batch_size):
-    """Test model factory function."""
+    """
+    Verify that get_model constructs each supported architecture and that a forward pass produces outputs with shape (batch_size, num_classes).
+    
+    Parameters:
+        num_classes (int): Number of output classes used to construct the model.
+        input_tensor (torch.Tensor): Input tensor passed to the model for the forward pass.
+        batch_size (int): Expected batch size used to validate the output shape.
+    """
     model_names = ["resnet50", "mobilenetv2", "efficientnetb0"]
     
     for model_name in model_names:
@@ -76,7 +96,9 @@ def test_get_model_factory(num_classes, input_tensor, batch_size):
 
 
 def test_invalid_model_name(num_classes):
-    """Test that invalid model name raises error."""
+    """
+    Verify get_model raises ValueError when given an unknown model name.
+    """
     with pytest.raises(ValueError):
         get_model("invalid_model", num_classes)
 

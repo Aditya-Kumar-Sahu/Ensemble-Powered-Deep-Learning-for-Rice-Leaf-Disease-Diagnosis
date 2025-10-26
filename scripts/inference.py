@@ -20,7 +20,15 @@ from src.utils import get_device
 
 
 def load_config(config_path: str) -> dict:
-    """Load configuration from YAML file."""
+    """
+    Load configuration settings from a YAML file.
+    
+    Parameters:
+        config_path (str): Path to the YAML configuration file to load.
+    
+    Returns:
+        dict: Parsed configuration as a Python dictionary.
+    """
     with open(config_path, "r") as f:
         return yaml.safe_load(f)
 
@@ -33,17 +41,23 @@ def predict_image(
     class_names: list,
 ) -> dict:
     """
-    Predict disease class for a single image.
+    Predicts the disease class and confidences for a single image.
     
-    Args:
-        image_path: Path to image file
-        model: Trained model
-        transform: Image transform
-        device: Device to run inference on
-        class_names: List of class names
-        
+    Parameters:
+        image_path (str): Path to the input image file.
+        model (torch.nn.Module): Trained classification model.
+        transform: Image transform or preprocessing callable applied before inference.
+        device (torch.device): Device on which to run the model.
+        class_names (list): Ordered list of class names corresponding to model output indices.
+    
     Returns:
-        Dictionary with prediction results
+        dict: A dictionary with the following keys:
+            - "predicted_class" (str): The class name with the highest probability.
+            - "confidence" (float): Probability of the predicted class (0.0–1.0).
+            - "top5_predictions" (list): List of top predictions (up to five, limited by number of classes).
+              Each entry is a dict with:
+                - "class" (str): Class name.
+                - "confidence" (float): Probability for that class (0.0–1.0).
     """
     # Load and transform image
     image = Image.open(image_path).convert("RGB")
@@ -75,6 +89,12 @@ def predict_image(
 
 
 def main():
+    """
+    Run the CLI inference pipeline for rice leaf disease classification.
+    
+    Parses command-line arguments, loads configuration and model weights, prepares image transforms,
+    performs a single-image prediction, and prints the predicted class, its confidence, and a top-5 list.
+    """
     parser = argparse.ArgumentParser(
         description="Perform inference on rice leaf disease images"
     )

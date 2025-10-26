@@ -17,7 +17,14 @@ from src.data.augmentations import (
 
 @pytest.fixture
 def sample_image():
-    """Create a sample RGB image."""
+    """
+    Create and return a random 224×224 RGB PIL Image.
+    
+    The image contains uint8 pixel values sampled uniformly from 0 to 255.
+    
+    Returns:
+        PIL.Image.Image: A 224x224 RGB image with mode 'RGB' and dtype uint8.
+    """
     # Create a random RGB image
     img_array = np.random.randint(0, 255, (224, 224, 3), dtype=np.uint8)
     return Image.fromarray(img_array)
