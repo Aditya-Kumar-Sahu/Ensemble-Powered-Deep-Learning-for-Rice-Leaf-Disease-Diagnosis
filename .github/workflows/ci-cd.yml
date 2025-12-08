@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, refactor ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, refactor ]
 
 jobs:
   test:
@@ -48,14 +48,14 @@ jobs:
     
     - name: Type check with mypy
       run: |
-        mypy src/ --ignore-missing-imports || true
+        mypy src/ --ignore-missing-imports
     
     - name: Run tests with pytest
       run: |
         pytest tests/ -v --cov=src --cov-report=xml --cov-report=html
     
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         file: ./coverage.xml
         flags: unittests
@@ -75,14 +75,17 @@ jobs:
     
     - name: Build Docker image
       run: |
-        docker build -t rice-disease-classifier:latest .
+        docker build -t rice-disease-classifier:${{ github.sha }} .
     
     - name: Test Docker image
       run: |
-        docker run --rm rice-disease-classifier:latest python -c "from src.models import get_model; print('Docker image works!')"
+        docker run --rm rice-disease-classifier:${{ github.sha }} python -c "from src.models import get_model; print('Docker image works!')"
 
   security-scan:
     runs-on: ubuntu-latest
+    needs: test
+    permissions:
+      security-events: write
     steps:
     - uses: actions/checkout@v3
     

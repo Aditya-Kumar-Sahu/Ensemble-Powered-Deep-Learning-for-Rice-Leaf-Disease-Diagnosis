@@ -80,3 +80,8 @@ htmlcov/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# AI utilities
+GEMINI.md
+PROGRESS.md
+instructions.json

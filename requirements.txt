@@ -7,6 +7,8 @@ Pillow>=9.0.0
 # Data handling
 kagglehub>=0.1.0
 PyYAML>=6.0
+albumentations>=1.1.0
+opencv-python-headless>=4.5.0
 
 # Visualization
 matplotlib>=3.5.0

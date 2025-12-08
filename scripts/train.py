@@ -15,21 +15,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from src.data import get_dataloaders
 from src.models import get_model
 from src.training import Trainer, get_optimizer, get_scheduler
-from src.utils import set_seed, get_device, setup_logger, ensure_dirs
-
-
-def load_config(config_path: str) -> dict:
-    """
-    Load and parse the YAML configuration file at the given path.
-    
-    Parameters:
-        config_path (str): Path to the YAML configuration file.
-    
-    Returns:
-        dict: Parsed configuration mapping from the YAML file.
-    """
-    with open(config_path, "r") as f:
-        return yaml.safe_load(f)
+from src.utils import set_seed, get_device, setup_logger, ensure_dirs, load_config
 
 
 def main():
@@ -54,90 +40,35 @@ def main():
         choices=["resnet50", "mobilenetv2", "efficientnetb0"],
         help="Model architecture to train",
     )
-    parser.add_argument(
-        "--config",
-        type=str,
-        default="configs/base_config.yaml",
-        help="Path to configuration file",
-    )
-    parser.add_argument(
-        "--epochs",
-        type=int,
-        default=None,
-        help="Number of training epochs (overrides config)",
-    )
-    parser.add_argument(
-        "--batch-size",
-        type=int,
-        default=None,
-        help="Batch size (overrides config)",
-    )
-    parser.add_argument(
-        "--lr",
-        type=float,
-        default=None,
-        help="Learning rate (overrides config)",
-    )
-    parser.add_argument(
-        "--output-dir",
-        type=str,
-        default="models",
-        help="Directory to save trained models",
-    )
-    parser.add_argument(
-        "--seed",
-        type=int,
-        default=42,
-        help="Random seed for reproducibility",
-    )
-    parser.add_argument(
-        "--device",
-        type=str,
-        default="auto",
-        choices=["auto", "cuda", "cpu"],
-        help="Device to use for training",
-    )
     
     args = parser.parse_args()
     
     # Load configuration
-    config = load_config(args.config)
-    
-    # Override config with command-line arguments
-    if args.epochs:
-        config["training"]["num_epochs"] = args.epochs
-    if args.batch_size:
-        config["data"]["batch_size"] = args.batch_size
-    if args.lr:
-        config["training"]["learning_rate"] = args.lr
+    model_config_path = f"configs/model_configs/{args.model}.yaml"
+    config = load_config(model_config_path=model_config_path)
     
     # Set seed for reproducibility
-    set_seed(args.seed)
+    set_seed(config['seed'])
     
     # Setup logger
-    logger = setup_logger(log_file="logs/training.log")
+    log_path = Path(config['output']['logs_dir']) / "training.log"
+    logger = setup_logger(log_file=log_path)
     logger.info("Starting training script")
     logger.info(f"Configuration: {config}")
     
     # Get device
-    if args.device == "auto":
-        device = get_device()
-    else:
-        device = torch.device(args.device)
+    device = get_device(config['device'])
     logger.info(f"Using device: {device}")
     
     # Create output directories
-    ensure_dirs([args.output_dir, "logs"])
+    output_dir = Path(config['output']['models_dir'])
+    ensure_dirs([output_dir, log_path.parent])
     
     # Load data
     logger.info("Loading dataset...")
     train_loader, val_loader, class_names = get_dataloaders(
         data_dir=args.data_dir,
-        image_size=config["data"]["image_size"],
-        batch_size=config["data"]["batch_size"],
-        val_split=config["data"]["val_split"],
-        num_workers=config["data"]["num_workers"],
-        seed=args.seed,
+        config=config,
     )
     num_classes = len(class_names)
     logger.info(f"Dataset loaded: {len(train_loader.dataset)} training samples, "

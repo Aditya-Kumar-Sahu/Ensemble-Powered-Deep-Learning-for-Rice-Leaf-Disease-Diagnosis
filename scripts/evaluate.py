@@ -21,21 +21,7 @@ from src.evaluation import (
     generate_classification_report,
     print_model_summary,
 )
-from src.utils import set_seed, get_device, setup_logger
-
-
-def load_config(config_path: str) -> dict:
-    """
-    Load runtime configuration from a YAML file.
-    
-    Parameters:
-        config_path (str): Path to the YAML configuration file.
-    
-    Returns:
-        config (dict): Parsed configuration dictionary.
-    """
-    with open(config_path, "r") as f:
-        return yaml.safe_load(f)
+from src.utils import set_seed, get_device, setup_logger, load_config
 
 
 def main():
@@ -64,37 +50,6 @@ def main():
         action="store_true",
         help="Evaluate ensemble of all models",
     )
-    parser.add_argument(
-        "--models-dir",
-        type=str,
-        default="models",
-        help="Directory containing trained models",
-    )
-    parser.add_argument(
-        "--config",
-        type=str,
-        default="configs/base_config.yaml",
-        help="Path to configuration file",
-    )
-    parser.add_argument(
-        "--output-dir",
-        type=str,
-        default="results",
-        help="Directory to save evaluation results",
-    )
-    parser.add_argument(
-        "--seed",
-        type=int,
-        default=42,
-        help="Random seed for reproducibility",
-    )
-    parser.add_argument(
-        "--device",
-        type=str,
-        default="auto",
-        choices=["auto", "cuda", "cpu"],
-        help="Device to use for evaluation",
-    )
     
     args = parser.parse_args()
     
@@ -103,35 +58,33 @@ def main():
         parser.error("Either --model or --ensemble must be specified")
     
     # Load configuration
-    config = load_config(args.config)
+    model_config_path = f"configs/model_configs/{args.model}.yaml" if args.model else None
+    config = load_config(model_config_path=model_config_path)
     
     # Set seed
-    set_seed(args.seed)
+    set_seed(config['seed'])
     
     # Setup logger
     logger = setup_logger()
     logger.info("Starting evaluation script")
     
     # Get device
-    if args.device == "auto":
-        device = get_device()
-    else:
-        device = torch.device(args.device)
+    device = get_device(config['device'])
     logger.info(f"Using device: {device}")
     
     # Load data
     logger.info("Loading dataset...")
-    train_loader, val_loader, class_names = get_dataloaders(
+    _, val_loader, class_names = get_dataloaders(
         data_dir=args.data_dir,
-        image_size=config["data"]["image_size"],
-        batch_size=config["data"]["batch_size"],
-        val_split=config["data"]["val_split"],
-        num_workers=config["data"]["num_workers"],
-        seed=args.seed,
+        config=config,
     )
     num_classes = len(class_names)
     logger.info(f"Dataset loaded: {len(val_loader.dataset)} validation samples")
     logger.info(f"Number of classes: {num_classes}")
+    
+    # Create output directory
+    output_dir = Path(config['output']['results_dir'])
+    output_dir.mkdir(exist_ok=True)
     
     # Evaluate ensemble
     if args.ensemble:
@@ -142,7 +95,7 @@ def main():
             val_loader=val_loader,
             model_names=model_names,
             num_classes=num_classes,
-            checkpoint_dir=args.models_dir,
+            checkpoint_dir=config['output']['models_dir'],
             device=device,
             voting=config["ensemble"]["voting"],
         )
@@ -155,7 +108,7 @@ def main():
             y_true,
             y_pred,
             class_names,
-            save_path=f"{args.output_dir}/confusion_matrix_ensemble.png",
+            save_path=output_dir / "confusion_matrix_ensemble.png",
         )
         
         # Generate classification report
@@ -164,19 +117,19 @@ def main():
         print(report)
         
         # Save report
-        with open(f"{args.output_dir}/classification_report_ensemble.txt", "w") as f:
+        with open(output_dir / "classification_report_ensemble.txt", "w") as f:
             f.write(report)
         
         # Print model summary
-        print_model_summary(model_names)
+        print_model_summary(model_names, log_folder=config['output']['logs_dir'])
     
     # Evaluate single model
     elif args.model:
         logger.info(f"Evaluating model: {args.model}")
         
         # Load model
-        model = get_model(args.model, num_classes)
-        checkpoint_path = f"{args.models_dir}/{args.model}.pth"
+        model = get_model(args.model, num_classes, dropout=config['model']['dropout'])
+        checkpoint_path = Path(config['output']['models_dir']) / f"{args.model}.pth"
         model.load_state_dict(torch.load(checkpoint_path, map_location=device))
         model.to(device)
         model.eval()
@@ -192,7 +145,7 @@ def main():
             y_true,
             y_pred,
             class_names,
-            save_path=f"{args.output_dir}/confusion_matrix_{args.model}.png",
+            save_path=output_dir / f"confusion_matrix_{args.model}.png",
         )
         
         # Generate classification report
@@ -201,10 +154,8 @@ def main():
         print(report)
         
         # Save report
-        with open(f"{args.output_dir}/classification_report_{args.model}.txt", "w") as f:
+        with open(output_dir / f"classification_report_{args.model}.txt", "w") as f:
             f.write(report)
-    
-    logger.info("Evaluation completed!")
 
 
 if __name__ == "__main__":
