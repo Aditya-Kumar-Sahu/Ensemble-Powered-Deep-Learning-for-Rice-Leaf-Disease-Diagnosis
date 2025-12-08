@@ -19,9 +19,9 @@ from src.data.augmentations import (
 def sample_image():
     """
     Create and return a random 224×224 RGB PIL Image.
-    
+
     The image contains uint8 pixel values sampled uniformly from 0 to 255.
-    
+
     Returns:
         PIL.Image.Image: A 224x224 RGB image with mode 'RGB' and dtype uint8.
     """
@@ -33,19 +33,19 @@ def sample_image():
 def test_get_train_transforms(sample_image):
     """Test training transforms."""
     transform = get_train_transforms(image_size=224)
-    
+
     assert transform is not None
     assert isinstance(transform, transforms.Compose)
-    
+
     # Apply transform
     transformed = transform(sample_image)
-    
+
     # Check output is a tensor
     assert isinstance(transformed, torch.Tensor)
-    
+
     # Check shape
     assert transformed.shape == (3, 224, 224)
-    
+
     # Check normalization (values should be roughly in [-2, 2] range)
     assert transformed.min() >= -3.0
     assert transformed.max() <= 3.0
@@ -54,16 +54,16 @@ def test_get_train_transforms(sample_image):
 def test_get_val_transforms(sample_image):
     """Test validation transforms."""
     transform = get_val_transforms(image_size=224)
-    
+
     assert transform is not None
     assert isinstance(transform, transforms.Compose)
-    
+
     # Apply transform
     transformed = transform(sample_image)
-    
+
     # Check output is a tensor
     assert isinstance(transformed, torch.Tensor)
-    
+
     # Check shape
     assert transformed.shape == (3, 224, 224)
 
@@ -71,16 +71,16 @@ def test_get_val_transforms(sample_image):
 def test_get_advanced_train_transforms(sample_image):
     """Test advanced training transforms."""
     transform = get_advanced_train_transforms(image_size=224)
-    
+
     assert transform is not None
     assert isinstance(transform, transforms.Compose)
-    
+
     # Apply transform
     transformed = transform(sample_image)
-    
+
     # Check output is a tensor
     assert isinstance(transformed, torch.Tensor)
-    
+
     # Check shape
     assert transformed.shape == (3, 224, 224)
 
@@ -89,21 +89,21 @@ def test_transform_different_sizes():
     """Test transforms with different image sizes."""
     img_array = np.random.randint(0, 255, (512, 512, 3), dtype=np.uint8)
     img = Image.fromarray(img_array)
-    
+
     for size in [128, 224, 256]:
         transform = get_train_transforms(image_size=size)
         transformed = transform(img)
-        
+
         assert transformed.shape == (3, size, size)
 
 
 def test_transform_reproducibility(sample_image):
     """Test that validation transforms are deterministic."""
     transform = get_val_transforms(image_size=224)
-    
+
     # Apply transform twice
     transformed1 = transform(sample_image)
     transformed2 = transform(sample_image)
-    
+
     # Should be identical for validation transforms
     assert torch.allclose(transformed1, transformed2)

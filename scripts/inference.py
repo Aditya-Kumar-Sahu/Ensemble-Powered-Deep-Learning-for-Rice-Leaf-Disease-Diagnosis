@@ -22,10 +22,10 @@ from src.utils import get_device
 def load_config(config_path: str) -> dict:
     """
     Load configuration settings from a YAML file.
-    
+
     Parameters:
         config_path (str): Path to the YAML configuration file to load.
-    
+
     Returns:
         dict: Parsed configuration as a Python dictionary.
     """
@@ -42,14 +42,14 @@ def predict_image(
 ) -> dict:
     """
     Predicts the disease class and confidences for a single image.
-    
+
     Parameters:
         image_path (str): Path to the input image file.
         model (torch.nn.Module): Trained classification model.
         transform: Image transform or preprocessing callable applied before inference.
         device (torch.device): Device on which to run the model.
         class_names (list): Ordered list of class names corresponding to model output indices.
-    
+
     Returns:
         dict: A dictionary with the following keys:
             - "predicted_class" (str): The class name with the highest probability.
@@ -62,7 +62,7 @@ def predict_image(
     # Load and transform image
     image = Image.open(image_path).convert("RGB")
     image_tensor = transform(image).unsqueeze(0).to(device)
-    
+
     # Make prediction
     model.eval()
     with torch.no_grad():
@@ -70,7 +70,7 @@ def predict_image(
         probs = torch.softmax(output, dim=1)[0]
         pred_idx = torch.argmax(probs).item()
         confidence = probs[pred_idx].item()
-    
+
     # Get top 5 predictions
     top5_probs, top5_indices = torch.topk(probs, min(5, len(class_names)))
     top5_predictions = [
@@ -80,7 +80,7 @@ def predict_image(
         }
         for idx, prob in zip(top5_indices, top5_probs)
     ]
-    
+
     return {
         "predicted_class": class_names[pred_idx],
         "confidence": confidence,
@@ -91,7 +91,7 @@ def predict_image(
 def main():
     """
     Run the CLI inference pipeline for rice leaf disease classification.
-    
+
     Parses command-line arguments, loads configuration and model weights, prepares image transforms,
     performs a single-image prediction, and prints the predicted class, its confidence, and a top-5 list.
     """
@@ -137,23 +137,23 @@ def main():
         choices=["auto", "cuda", "cpu"],
         help="Device to use for inference",
     )
-    
+
     args = parser.parse_args()
-    
+
     # Load configuration
     config = load_config(args.config)
-    
+
     # Get device
     if args.device == "auto":
         device = get_device()
     else:
         device = torch.device(args.device)
     print(f"Using device: {device}")
-    
+
     # Set checkpoint path
     if args.checkpoint is None:
         args.checkpoint = f"models/{args.model}.pth"
-    
+
     # Load model
     print(f"Loading model: {args.model}")
     num_classes = len(args.classes)
@@ -161,10 +161,10 @@ def main():
     model.load_state_dict(torch.load(args.checkpoint, map_location=device))
     model.to(device)
     model.eval()
-    
+
     # Get transform
     transform = get_val_transforms(config["data"]["image_size"])
-    
+
     # Make prediction
     print(f"Predicting image: {args.image}")
     result = predict_image(
@@ -174,17 +174,19 @@ def main():
         device,
         args.classes,
     )
-    
+
     # Print results
     print("\n" + "=" * 60)
     print("PREDICTION RESULTS")
     print("=" * 60)
     print(f"\nPredicted Class: {result['predicted_class']}")
     print(f"Confidence: {result['confidence']:.4f} ({result['confidence']*100:.2f}%)")
-    
+
     print("\nTop 5 Predictions:")
     for i, pred in enumerate(result["top5_predictions"], 1):
-        print(f"  {i}. {pred['class']:<30} {pred['confidence']:.4f} ({pred['confidence']*100:.2f}%)")
+        print(
+            f"  {i}. {pred['class']:<30} {pred['confidence']:.4f} ({pred['confidence']*100:.2f}%)"
+        )
     print("=" * 60)
 
 

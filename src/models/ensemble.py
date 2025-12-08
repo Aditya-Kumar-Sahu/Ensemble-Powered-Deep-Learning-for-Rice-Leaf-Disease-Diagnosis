@@ -15,7 +15,7 @@ class EnsembleModel(nn.Module):
     """
     Ensemble model that combines predictions from multiple base models.
     """
-    
+
     def __init__(
         self,
         models: List[nn.Module],
@@ -24,7 +24,7 @@ class EnsembleModel(nn.Module):
     ):
         """
         Create an ensemble wrapper that combines multiple base models using a specified voting strategy.
-        
+
         Parameters:
             models (List[nn.Module]): Base models to include in the ensemble; stored as an nn.ModuleList.
             voting (Literal["soft", "hard", "weighted"]): Voting strategy to aggregate model outputs. Supported values:
@@ -40,7 +40,7 @@ class EnsembleModel(nn.Module):
         super().__init__()
         self.models = nn.ModuleList(models)
         self.voting = voting
-        
+
         if voting == "weighted":
             if weights is None:
                 # Default to equal weights
@@ -52,43 +52,43 @@ class EnsembleModel(nn.Module):
             self.weights = torch.tensor(weights, dtype=torch.float32)
         else:
             self.weights = None
-    
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Compute ensemble logits from the registered base models using the configured voting strategy.
-        
+
         Parameters:
             x (torch.Tensor): Input batch passed to each base model (batch dimension first). Each base model must accept x and produce logits over classes.
-        
+
         Returns:
             torch.Tensor: Logits with shape [batch_size, num_classes]. For "soft" and "weighted" voting this is the log of the averaged (or weighted-averaged) class probabilities; for "hard" voting this is the log of a one-hot encoding of the majority-vote class.
-        
+
         Raises:
             ValueError: If self.voting is not "soft", "weighted", or "hard".
         """
         outputs = []
-        
+
         for model in self.models:
             model.eval()
             with torch.no_grad():
                 output = model(x)
                 outputs.append(output)
-        
+
         outputs = torch.stack(outputs)  # [num_models, batch_size, num_classes]
-        
+
         if self.voting == "soft":
             # Average probabilities
             probs = torch.softmax(outputs, dim=2)
             ensemble_probs = probs.mean(dim=0)
             return torch.log(ensemble_probs + 1e-10)  # Convert back to logits
-        
+
         elif self.voting == "weighted":
             # Weighted average of probabilities
             probs = torch.softmax(outputs, dim=2)
             weights = self.weights.view(-1, 1, 1).to(probs.device)
             ensemble_probs = (probs * weights).sum(dim=0)
             return torch.log(ensemble_probs + 1e-10)
-        
+
         elif self.voting == "hard":
             # Majority voting
             preds = torch.argmax(outputs, dim=2)
@@ -97,7 +97,7 @@ class EnsembleModel(nn.Module):
             # Convert to one-hot and then to logits
             one_hot = F.one_hot(ensemble_pred, num_classes=num_classes).float()
             return torch.log(one_hot + 1e-10)
-        
+
         else:
             raise ValueError(f"Unknown voting strategy: {self.voting}")
 
@@ -110,18 +110,18 @@ def load_ensemble_models(
 ) -> List[nn.Module]:
     """
     Load and return models instantiated for the given names by restoring their checkpoints.
-    
+
     Parameters:
         model_names (List[str]): Names of models to instantiate and load.
         num_classes (int): Number of output classes for each model constructor.
         checkpoint_dir (str): Directory containing model checkpoint files named "<model_name>.pth".
         device (torch.device): Device to place each loaded model on.
-    
+
     Returns:
         List[nn.Module]: List of models with their state restored, moved to `device`, and set to evaluation mode.
     """
     models = []
-    
+
     for model_name in model_names:
         model = get_model(model_name, num_classes)
         checkpoint_path = f"{checkpoint_dir}/{model_name}.pth"
@@ -129,7 +129,7 @@ def load_ensemble_models(
         model.to(device)
         model.eval()
         models.append(model)
-    
+
     return models
 
 
@@ -144,7 +144,7 @@ def predict_ensemble(
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Generate ensemble predictions for a validation dataset using soft, hard, or weighted voting.
-    
+
     Parameters:
         val_loader (DataLoader): Validation data loader yielding (inputs, labels) batches.
         model_names (List[str]): Names of base models; each name is used to load a corresponding checkpoint file from checkpoint_dir.
@@ -156,28 +156,28 @@ def predict_ensemble(
             - "hard": majority vote on per-model argmax predictions.
             - "weighted": weighted sum of per-model softmax probabilities using `weights`.
         weights (List[float] | None): Per-model weights for "weighted" voting. Must have length equal to the number of models and sum to 1.0.
-    
+
     Returns:
         Tuple[np.ndarray, np.ndarray]: A tuple (true_labels, predictions) where both are 1-D NumPy arrays of shape (N,) containing ground-truth labels and ensemble-predicted class indices for all samples in val_loader.
     """
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    
+
     # Load models
     models = load_ensemble_models(model_names, num_classes, checkpoint_dir, device)
-    
+
     # Create ensemble
     ensemble = EnsembleModel(models, voting=voting, weights=weights)
     ensemble.to(device)
     ensemble.eval()
-    
+
     all_preds = []
     all_labels = []
-    
+
     with torch.no_grad():
         for inputs, labels in tqdm(val_loader, desc="Ensemble Prediction"):
             inputs = inputs.to(device)
-            
+
             if voting == "soft" or voting == "weighted":
                 # Collect probabilities from all models
                 probs = []
@@ -185,28 +185,28 @@ def predict_ensemble(
                     output = model(inputs)
                     prob = F.softmax(output, dim=1)
                     probs.append(prob)
-                
+
                 probs = torch.stack(probs)  # [num_models, batch_size, num_classes]
-                
+
                 if voting == "soft":
                     avg_prob = probs.mean(dim=0)
                 else:  # weighted
                     weights_tensor = torch.tensor(weights, device=device).view(-1, 1, 1)
                     avg_prob = (probs * weights_tensor).sum(dim=0)
-                
+
                 preds = torch.argmax(avg_prob, dim=1)
-            
+
             else:  # hard voting
                 votes = []
                 for model in models:
                     output = model(inputs)
                     pred = torch.argmax(output, dim=1)
                     votes.append(pred)
-                
+
                 votes = torch.stack(votes)  # [num_models, batch_size]
                 preds = torch.mode(votes, dim=0).values
-            
+
             all_preds.extend(preds.cpu().numpy())
             all_labels.extend(labels.numpy())
-    
+
     return np.array(all_labels), np.array(all_preds)

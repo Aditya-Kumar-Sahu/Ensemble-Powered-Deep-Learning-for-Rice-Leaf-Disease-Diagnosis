@@ -21,7 +21,7 @@ from src.utils import set_seed, get_device, setup_logger, ensure_dirs, load_conf
 def main():
     """
     Orchestrate end-to-end training of a rice leaf disease classification model using CLI arguments and a YAML configuration.
-    
+
     Loads configuration, applies command-line overrides for epochs, batch size, and learning rate, initializes randomness and logging, selects the compute device, ensures output directories, prepares data loaders and model, constructs optimizer, scheduler, and loss, runs the training loop via Trainer, and logs final metrics and model save location.
     """
     parser = argparse.ArgumentParser(
@@ -40,30 +40,30 @@ def main():
         choices=["resnet50", "mobilenetv2", "efficientnetb0"],
         help="Model architecture to train",
     )
-    
+
     args = parser.parse_args()
-    
+
     # Load configuration
     model_config_path = f"configs/model_configs/{args.model}.yaml"
     config = load_config(model_config_path=model_config_path)
-    
+
     # Set seed for reproducibility
-    set_seed(config['seed'])
-    
+    set_seed(config["seed"])
+
     # Setup logger
-    log_path = Path(config['output']['logs_dir']) / "training.log"
+    log_path = Path(config["output"]["logs_dir"]) / "training.log"
     logger = setup_logger(log_file=log_path)
     logger.info("Starting training script")
     logger.info(f"Configuration: {config}")
-    
+
     # Get device
-    device = get_device(config['device'])
+    device = get_device(config["device"])
     logger.info(f"Using device: {device}")
-    
+
     # Create output directories
-    output_dir = Path(config['output']['models_dir'])
+    output_dir = Path(config["output"]["models_dir"])
     ensure_dirs([output_dir, log_path.parent])
-    
+
     # Load data
     logger.info("Loading dataset...")
     train_loader, val_loader, class_names = get_dataloaders(
@@ -71,11 +71,13 @@ def main():
         config=config,
     )
     num_classes = len(class_names)
-    logger.info(f"Dataset loaded: {len(train_loader.dataset)} training samples, "
-                f"{len(val_loader.dataset)} validation samples")
+    logger.info(
+        f"Dataset loaded: {len(train_loader.dataset)} training samples, "
+        f"{len(val_loader.dataset)} validation samples"
+    )
     logger.info(f"Number of classes: {num_classes}")
     logger.info(f"Classes: {class_names}")
-    
+
     # Create model
     logger.info(f"Creating model: {args.model}")
     model = get_model(
@@ -84,8 +86,10 @@ def main():
         pretrained=config["model"]["pretrained"],
         dropout=config["model"]["dropout"],
     )
-    logger.info(f"Model created with {sum(p.numel() for p in model.parameters()):,} parameters")
-    
+    logger.info(
+        f"Model created with {sum(p.numel() for p in model.parameters()):,} parameters"
+    )
+
     # Create optimizer
     optimizer = get_optimizer(
         model=model,
@@ -93,17 +97,17 @@ def main():
         learning_rate=config["training"]["learning_rate"],
         weight_decay=config["training"]["weight_decay"],
     )
-    
+
     # Create scheduler
     scheduler = get_scheduler(
         optimizer=optimizer,
         scheduler_name=config["training"]["scheduler"],
         num_epochs=config["training"]["num_epochs"],
     )
-    
+
     # Create loss function
     criterion = torch.nn.CrossEntropyLoss()
-    
+
     # Create trainer
     trainer = Trainer(
         model=model,
@@ -114,7 +118,7 @@ def main():
         scheduler=scheduler,
         device=device,
     )
-    
+
     # Train model
     logger.info("Starting training...")
     history = trainer.train(
@@ -122,11 +126,11 @@ def main():
         save_dir=args.output_dir,
         model_name=args.model,
     )
-    
+
     logger.info("Training completed!")
     logger.info(f"Best validation accuracy: {history['best_val_acc']:.2f}%")
     logger.info(f"Model saved to {args.output_dir}/{args.model}.pth")
-    
+
 
 if __name__ == "__main__":
     main()

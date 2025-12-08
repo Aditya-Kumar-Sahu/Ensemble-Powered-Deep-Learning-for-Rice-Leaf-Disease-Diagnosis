@@ -26,6 +26,7 @@ from src.utils import get_device
 # Response models
 class PredictionResult(BaseModel):
     """Prediction result model."""
+
     predicted_class: str
     confidence: float
     top_predictions: Dict[str, float]
@@ -34,6 +35,7 @@ class PredictionResult(BaseModel):
 
 class HealthCheck(BaseModel):
     """Health check response model."""
+
     status: str
     models_loaded: List[str]
     device: str
@@ -41,6 +43,7 @@ class HealthCheck(BaseModel):
 
 class DiseaseInfo(BaseModel):
     """Disease information model."""
+
     name: str
     description: str
     treatment: str
@@ -86,14 +89,14 @@ classifier = None
 
 class RiceDiseaseAPI:
     """Rice disease classification API."""
-    
+
     def __init__(self, config_path: str = "configs/base_config.yaml"):
         """
         Create a RiceDiseaseAPI instance configured from the given YAML file.
-        
+
         Parameters:
             config_path (str): Path to a YAML configuration file. If the file is missing or unreadable, a minimal default configuration is used.
-        
+
         Description:
             Initializes runtime state including the compute device, loaded configuration, model registry, validation image transform, and class name list.
         """
@@ -102,14 +105,14 @@ class RiceDiseaseAPI:
         self.models = {}
         self.transform = get_val_transforms(self.config["data"]["image_size"])
         self.class_names = self.get_class_names()
-        
+
     def load_config(self, config_path: str) -> dict:
         """
         Load configuration from a YAML file, falling back to a minimal default if the file is missing.
-        
+
         Parameters:
             config_path (str): Path to the YAML configuration file.
-        
+
         Returns:
             dict: Configuration dictionary parsed from the YAML file, or a default config with image size 224 if the file is not found.
         """
@@ -121,13 +124,13 @@ class RiceDiseaseAPI:
             return {
                 "data": {"image_size": 224},
             }
-    
+
     def get_class_names(self) -> list:
         """
         Return the list of disease class names used by the classifier.
-        
+
         This is a static, ordered list mapping model output indices to human-readable class labels.
-        
+
         Returns:
             List[str]: Class names in the order corresponding to model output indices.
         """
@@ -138,31 +141,29 @@ class RiceDiseaseAPI:
             "LeafSmut",
             "Healthy",
         ]
-    
+
     def load_model(self, model_name: str, checkpoint_path: str):
         """
         Load and cache a model for the given name from a checkpoint file.
-        
+
         If the model is already cached in self.models, the cached instance is returned; otherwise the model is constructed for the configured number of classes, its state dict is loaded from checkpoint_path, moved to the configured device, set to evaluation mode, cached, and returned.
-        
+
         Parameters:
             model_name (str): Identifier of the model architecture/key used to construct and cache the model.
             checkpoint_path (str): Filesystem path to the checkpoint containing the model's state dict.
-        
+
         Returns:
             torch.nn.Module: The loaded PyTorch model instance moved to the configured device and set to evaluation mode.
         """
         if model_name not in self.models:
             num_classes = len(self.class_names)
             model = get_model(model_name, num_classes)
-            model.load_state_dict(
-                torch.load(checkpoint_path, map_location=self.device)
-            )
+            model.load_state_dict(torch.load(checkpoint_path, map_location=self.device))
             model.to(self.device)
             model.eval()
             self.models[model_name] = model
         return self.models[model_name]
-    
+
     def predict(
         self,
         image: Image.Image,
@@ -171,12 +172,12 @@ class RiceDiseaseAPI:
     ) -> dict:
         """
         Predict the disease class and associated probabilities for a given image using a specified model.
-        
+
         Parameters:
             image (PIL.Image.Image): Input image to classify; expected in RGB.
             model_name (str): Name of the model to use (selects which pretrained model is loaded).
             top_k (int): Number of top class predictions to include in the `top_predictions` map; capped at the number of available classes.
-        
+
         Returns:
             dict: Mapping with keys:
                 - "predicted_class" (str): Class with highest probability.
@@ -187,23 +188,23 @@ class RiceDiseaseAPI:
         # Load model
         checkpoint_path = f"models/{model_name}.pth"
         model = self.load_model(model_name, checkpoint_path)
-        
+
         # Transform image
         image_tensor = self.transform(image).unsqueeze(0).to(self.device)
-        
+
         # Make prediction
         with torch.no_grad():
             output = model(image_tensor)
             probs = torch.softmax(output, dim=1)[0]
             pred_idx = torch.argmax(probs).item()
             confidence = probs[pred_idx].item()
-        
+
         # Get top K predictions
         top_k = min(top_k, len(self.class_names))
         topk_probs, topk_indices = torch.topk(probs, top_k)
-        
+
         predicted_class = self.class_names[pred_idx]
-        
+
         # Build results
         results = {
             "predicted_class": predicted_class,
@@ -214,7 +215,7 @@ class RiceDiseaseAPI:
             },
             "model_used": model_name,
         }
-        
+
         return results
 
 
@@ -222,7 +223,7 @@ class RiceDiseaseAPI:
 async def startup_event():
     """
     Create and assign the application classifier used for predictions.
-    
+
     Initializes a RiceDiseaseAPI instance and stores it in the module-level variable `classifier` for use by request handlers.
     """
     global classifier
@@ -233,7 +234,7 @@ async def startup_event():
 async def root():
     """
     Return basic API metadata and available endpoints.
-    
+
     Returns:
         info (dict): Metadata containing:
             - message (str): Brief API title.
@@ -256,7 +257,7 @@ async def root():
 async def health_check():
     """
     Return current service health status and runtime metadata.
-    
+
     Returns:
         dict: A mapping with keys:
             - "status": `"healthy"` when the service is operational.
@@ -274,7 +275,7 @@ async def health_check():
 async def list_models():
     """
     List available model names.
-    
+
     Returns:
         List[str]: Available model names.
     """
@@ -289,15 +290,15 @@ async def predict(
 ):
     """
     Handle an uploaded image and return rice leaf disease predictions from the selected model.
-    
+
     Parameters:
         file: Uploaded image file; must be a valid image readable by Pillow (will be converted to RGB).
         model: Model name to use for prediction; must be one of "resnet50", "mobilenetv2", or "efficientnetb0".
         top_k: Number of top predictions to include (1–10).
-    
+
     Returns:
         dict: Prediction result with keys `predicted_class` (str), `confidence` (float), `top_predictions` (Dict[str, float]), and `model_used` (str).
-    
+
     Raises:
         HTTPException: 400 if the model name is invalid or the uploaded file is not a valid image.
         HTTPException: 404 if the model checkpoint is not found.
@@ -309,7 +310,7 @@ async def predict(
             status_code=400,
             detail=f"Invalid model: {model}. Choose from resnet50, mobilenetv2, efficientnetb0",
         )
-    
+
     # Read and validate image
     try:
         contents = await file.read()
@@ -319,7 +320,7 @@ async def predict(
             status_code=400,
             detail=f"Invalid image file: {str(e)}",
         )
-    
+
     # Make prediction
     try:
         results = classifier.predict(image, model, top_k)
@@ -340,13 +341,13 @@ async def predict(
 async def get_disease_info(disease_name: str):
     """
     Return detailed information for a disease from the in-memory disease database.
-    
+
     Parameters:
         disease_name (str): Disease key to look up in DISEASE_DATABASE (must match exactly, case-sensitive).
-    
+
     Returns:
         dict: A mapping with keys "name", "description", "treatment", and "prevention".
-    
+
     Raises:
         HTTPException: 404 if the disease_name is not found in DISEASE_DATABASE.
     """
@@ -355,7 +356,7 @@ async def get_disease_info(disease_name: str):
             status_code=404,
             detail=f"Disease information not found for: {disease_name}",
         )
-    
+
     info = DISEASE_DATABASE[disease_name]
     return {
         "name": disease_name,
@@ -369,7 +370,7 @@ async def get_disease_info(disease_name: str):
 async def list_classes():
     """
     Retrieve the list of disease class names.
-    
+
     Returns:
         List[str]: Class name strings used by the classifier.
     """
@@ -379,7 +380,7 @@ async def list_classes():
 def main():
     """
     Start the Uvicorn server for the FastAPI application.
-    
+
     Runs the app on host 0.0.0.0 and port 8000 with log level set to "info".
     """
     uvicorn.run(
