@@ -151,10 +151,7 @@ class RiceDiseaseClassifier:
         results = {
             "prediction": predicted_class,
             "confidence": confidence,
-            "top5": {
-                self.class_names[idx]: prob.item()
-                for idx, prob in zip(top5_indices, top5_probs)
-            },
+            "top5": {self.class_names[idx]: prob.item() for idx, prob in zip(top5_indices, top5_probs)},
         }
 
         return results

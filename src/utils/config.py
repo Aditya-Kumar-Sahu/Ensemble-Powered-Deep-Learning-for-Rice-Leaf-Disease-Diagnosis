@@ -5,9 +5,7 @@ from pathlib import Path
 from typing import Dict, Any
 
 
-def load_config(
-    base_config_path: str = "configs/base_config.yaml", model_config_path: str = None
-) -> Dict[str, Any]:
+def load_config(base_config_path: str = "configs/base_config.yaml", model_config_path: str = None) -> Dict[str, Any]:
     """
     Loads a base YAML configuration and merges a model-specific configuration on top.
 
@@ -39,11 +37,7 @@ def _recursive_merge(base_dict: Dict, new_dict: Dict) -> None:
         new_dict (Dict): The new dictionary with values to merge.
     """
     for key, value in new_dict.items():
-        if (
-            key in base_dict
-            and isinstance(base_dict[key], dict)
-            and isinstance(value, dict)
-        ):
+        if key in base_dict and isinstance(base_dict[key], dict) and isinstance(value, dict):
             _recursive_merge(base_dict[key], value)
         else:
             base_dict[key] = value

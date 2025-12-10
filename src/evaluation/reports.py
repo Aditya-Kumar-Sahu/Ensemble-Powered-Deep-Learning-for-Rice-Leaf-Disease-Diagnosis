@@ -49,9 +49,7 @@ def print_model_summary(
     print("\n" + "=" * 80)
     print("MODEL SUMMARY")
     print("=" * 80)
-    print(
-        f"{'Model':<20} {'Parameters':>15} {'Training Time':>15} {'Best Val Acc':>15}"
-    )
+    print(f"{'Model':<20} {'Parameters':>15} {'Training Time':>15} {'Best Val Acc':>15}")
     print("-" * 80)
 
     for name in model_names:
@@ -61,10 +59,7 @@ def print_model_summary(
             training_time = hist.get("training_time", 0)
             best_val_acc = hist.get("best_val_acc", max(hist.get("val_acc", [0])))
 
-            print(
-                f"{name:<20} {params:>15,} {training_time:>14.2f}s "
-                f"{best_val_acc:>14.2f}%"
-            )
+            print(f"{name:<20} {params:>15,} {training_time:>14.2f}s " f"{best_val_acc:>14.2f}%")
         except FileNotFoundError:
             print(f"{name:<20} {'N/A':>15} {'N/A':>15} {'N/A':>15}")
 

@@ -16,9 +16,7 @@ from src.training.scheduler import get_scheduler
 @pytest.fixture
 def simple_model():
     """Fixture for a simple model."""
-    return nn.Sequential(
-        nn.Flatten(), nn.Linear(3 * 224 * 224, 128), nn.ReLU(), nn.Linear(128, 10)
-    )
+    return nn.Sequential(nn.Flatten(), nn.Linear(3 * 224 * 224, 128), nn.ReLU(), nn.Linear(128, 10))
 
 
 @pytest.fixture
@@ -42,27 +40,21 @@ class TestGetOptimizer:
 
     def test_get_optimizer_adam(self, simple_model):
         """Test Adam optimizer creation."""
-        optimizer = get_optimizer(
-            simple_model, optimizer_name="adam", learning_rate=1e-3
-        )
+        optimizer = get_optimizer(simple_model, optimizer_name="adam", learning_rate=1e-3)
 
         assert isinstance(optimizer, torch.optim.Adam)
         assert optimizer.defaults["lr"] == 1e-3
 
     def test_get_optimizer_adamw(self, simple_model):
         """Test AdamW optimizer creation."""
-        optimizer = get_optimizer(
-            simple_model, optimizer_name="adamw", learning_rate=5e-4
-        )
+        optimizer = get_optimizer(simple_model, optimizer_name="adamw", learning_rate=5e-4)
 
         assert isinstance(optimizer, torch.optim.AdamW)
         assert optimizer.defaults["lr"] == 5e-4
 
     def test_get_optimizer_sgd(self, simple_model):
         """Test SGD optimizer creation."""
-        optimizer = get_optimizer(
-            simple_model, optimizer_name="sgd", learning_rate=1e-2, momentum=0.9
-        )
+        optimizer = get_optimizer(simple_model, optimizer_name="sgd", learning_rate=1e-2, momentum=0.9)
 
         assert isinstance(optimizer, torch.optim.SGD)
         assert optimizer.defaults["lr"] == 1e-2
@@ -76,9 +68,7 @@ class TestGetOptimizer:
 
     def test_get_optimizer_with_weight_decay(self, simple_model):
         """Test optimizer with weight decay."""
-        optimizer = get_optimizer(
-            simple_model, optimizer_name="adam", weight_decay=1e-4
-        )
+        optimizer = get_optimizer(simple_model, optimizer_name="adam", weight_decay=1e-4)
 
         assert optimizer.defaults["weight_decay"] == 1e-4
 
@@ -97,9 +87,7 @@ class TestGetOptimizer:
 
     def test_get_optimizer_with_kwargs(self, simple_model):
         """Test optimizer with additional kwargs."""
-        optimizer = get_optimizer(
-            simple_model, optimizer_name="adam", betas=(0.9, 0.999), eps=1e-8
-        )
+        optimizer = get_optimizer(simple_model, optimizer_name="adam", betas=(0.9, 0.999), eps=1e-8)
 
         assert optimizer.defaults["betas"] == (0.9, 0.999)
         assert optimizer.defaults["eps"] == 1e-8
@@ -170,9 +158,7 @@ class TestGetScheduler:
     def test_get_scheduler_with_custom_params(self, simple_model):
         """Test scheduler with custom parameters."""
         optimizer = get_optimizer(simple_model, optimizer_name="adam")
-        scheduler = get_scheduler(
-            optimizer, scheduler_name="cosine", T_max=50, eta_min=1e-6
-        )
+        scheduler = get_scheduler(optimizer, scheduler_name="cosine", T_max=50, eta_min=1e-6)
 
         assert scheduler.T_max == 50
         assert scheduler.eta_min == 1e-6
@@ -274,9 +260,7 @@ class TestTrainer:
                 device=device,
             )
 
-            history = trainer.train(
-                num_epochs=2, save_dir=tmpdir, model_name="test_model"
-            )
+            history = trainer.train(num_epochs=2, save_dir=tmpdir, model_name="test_model")
 
             assert len(history["train_loss"]) == 2
             assert len(history["val_loss"]) == 2
@@ -305,16 +289,12 @@ class TestTrainer:
                 device=device,
             )
 
-            history = trainer.train(
-                num_epochs=3, save_dir=tmpdir, model_name="test_model"
-            )
+            history = trainer.train(num_epochs=3, save_dir=tmpdir, model_name="test_model")
 
             # Best validation accuracy should be the maximum
             assert history["best_val_acc"] == max(history["val_acc"])
 
-    def test_trainer_with_reduce_on_plateau(
-        self, simple_model, simple_dataloader, device
-    ):
+    def test_trainer_with_reduce_on_plateau(self, simple_model, simple_dataloader, device):
         """Test trainer with ReduceLROnPlateau scheduler."""
         with tempfile.TemporaryDirectory() as tmpdir:
             criterion = nn.CrossEntropyLoss()
@@ -331,16 +311,12 @@ class TestTrainer:
                 scheduler=scheduler,
             )
 
-            history = trainer.train(
-                num_epochs=2, save_dir=tmpdir, model_name="test_model"
-            )
+            history = trainer.train(num_epochs=2, save_dir=tmpdir, model_name="test_model")
 
             # Should have learning rates recorded
             assert len(history["learning_rates"]) == 2
 
-    def test_trainer_learning_rate_tracking(
-        self, simple_model, simple_dataloader, device
-    ):
+    def test_trainer_learning_rate_tracking(self, simple_model, simple_dataloader, device):
         """Test that learning rates are tracked during training."""
         with tempfile.TemporaryDirectory() as tmpdir:
             criterion = nn.CrossEntropyLoss()
@@ -357,9 +333,7 @@ class TestTrainer:
                 scheduler=scheduler,
             )
 
-            history = trainer.train(
-                num_epochs=3, save_dir=tmpdir, model_name="test_model"
-            )
+            history = trainer.train(num_epochs=3, save_dir=tmpdir, model_name="test_model")
 
             # Learning rate should decrease
             lrs = history["learning_rates"]
@@ -424,9 +398,7 @@ class TestTrainerEdgeCases:
     def test_trainer_empty_dataloader(self, simple_model, device):
         """Test trainer behavior with empty dataloader."""
         # Create empty dataloader
-        empty_dataset = TensorDataset(
-            torch.randn(0, 3, 224, 224), torch.randint(0, 10, (0,))
-        )
+        empty_dataset = TensorDataset(torch.randn(0, 3, 224, 224), torch.randint(0, 10, (0,)))
         empty_loader = DataLoader(empty_dataset, batch_size=4)
 
         criterion = nn.CrossEntropyLoss()
@@ -452,9 +424,7 @@ class TestTrainerEdgeCases:
             # Some implementations might raise these
             pass
 
-    def test_trainer_model_in_eval_mode_after_validation(
-        self, simple_model, simple_dataloader, device
-    ):
+    def test_trainer_model_in_eval_mode_after_validation(self, simple_model, simple_dataloader, device):
         """Test that model is in eval mode after validation."""
         criterion = nn.CrossEntropyLoss()
         optimizer = get_optimizer(simple_model, "adam")
@@ -473,9 +443,7 @@ class TestTrainerEdgeCases:
         # Model should be in eval mode after validation
         assert not simple_model.training
 
-    def test_trainer_model_in_train_mode_after_train_epoch(
-        self, simple_model, simple_dataloader, device
-    ):
+    def test_trainer_model_in_train_mode_after_train_epoch(self, simple_model, simple_dataloader, device):
         """Test that model is in train mode after training epoch."""
         criterion = nn.CrossEntropyLoss()
         optimizer = get_optimizer(simple_model, "adam")

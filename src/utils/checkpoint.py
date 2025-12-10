@@ -79,9 +79,7 @@ def load_checkpoint(
     return checkpoint
 
 
-def save_history(
-    history: Dict[str, Any], model_name: str, folder: str = "logs"
-) -> None:
+def save_history(history: Dict[str, Any], model_name: str, folder: str = "logs") -> None:
     """
     Save training history to a file named "<model_name>_history.npy" in the specified folder.
 

@@ -38,24 +38,18 @@ def get_scheduler(
     elif scheduler_name == "cosine":
         T_max = kwargs.pop("T_max", num_epochs)
         eta_min = kwargs.pop("eta_min", 0)
-        return lr_scheduler.CosineAnnealingLR(
-            optimizer, T_max=T_max, eta_min=eta_min, **kwargs
-        )
+        return lr_scheduler.CosineAnnealingLR(optimizer, T_max=T_max, eta_min=eta_min, **kwargs)
 
     elif scheduler_name == "step":
         step_size = kwargs.pop("step_size", 30)
         gamma = kwargs.pop("gamma", 0.1)
-        return lr_scheduler.StepLR(
-            optimizer, step_size=step_size, gamma=gamma, **kwargs
-        )
+        return lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=gamma, **kwargs)
 
     elif scheduler_name == "plateau":
         mode = kwargs.pop("mode", "min")
         factor = kwargs.pop("factor", 0.1)
         patience = kwargs.pop("patience", 10)
-        return lr_scheduler.ReduceLROnPlateau(
-            optimizer, mode=mode, factor=factor, patience=patience, **kwargs
-        )
+        return lr_scheduler.ReduceLROnPlateau(optimizer, mode=mode, factor=factor, patience=patience, **kwargs)
 
     elif scheduler_name == "exponential":
         gamma = kwargs.pop("gamma", 0.95)
@@ -63,6 +57,5 @@ def get_scheduler(
 
     else:
         raise ValueError(
-            f"Unsupported scheduler: {scheduler_name}. "
-            f"Supported schedulers are: cosine, step, plateau, exponential, none"
+            f"Unsupported scheduler: {scheduler_name}. " f"Supported schedulers are: cosine, step, plateau, exponential, none"
         )

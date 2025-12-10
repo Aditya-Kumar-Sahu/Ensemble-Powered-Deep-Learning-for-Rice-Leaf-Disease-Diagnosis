@@ -31,14 +31,10 @@ def get_optimizer(
     optimizer_name = optimizer_name.lower()
 
     if optimizer_name == "adam":
-        return optim.Adam(
-            model.parameters(), lr=learning_rate, weight_decay=weight_decay, **kwargs
-        )
+        return optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay, **kwargs)
 
     elif optimizer_name == "adamw":
-        return optim.AdamW(
-            model.parameters(), lr=learning_rate, weight_decay=weight_decay, **kwargs
-        )
+        return optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay, **kwargs)
 
     elif optimizer_name == "sgd":
         momentum = kwargs.pop("momentum", 0.9)
@@ -51,7 +47,4 @@ def get_optimizer(
         )
 
     else:
-        raise ValueError(
-            f"Unsupported optimizer: {optimizer_name}. "
-            f"Supported optimizers are: adam, adamw, sgd"
-        )
+        raise ValueError(f"Unsupported optimizer: {optimizer_name}. " f"Supported optimizers are: adam, adamw, sgd")

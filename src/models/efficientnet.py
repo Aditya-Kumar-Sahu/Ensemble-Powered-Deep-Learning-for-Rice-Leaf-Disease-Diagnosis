@@ -21,9 +21,7 @@ def get_efficientnet_b0(
         nn.Module: EfficientNet-B0 model with its final classifier replaced to produce `num_classes` outputs.
     """
     if pretrained:
-        model = models.efficientnet_b0(
-            weights=models.EfficientNet_B0_Weights.IMAGENET1K_V1
-        )
+        model = models.efficientnet_b0(weights=models.EfficientNet_B0_Weights.IMAGENET1K_V1)
     else:
         model = models.efficientnet_b0(weights=None)
 

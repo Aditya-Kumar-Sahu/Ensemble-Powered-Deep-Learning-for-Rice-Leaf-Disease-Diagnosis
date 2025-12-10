@@ -24,9 +24,7 @@ def main():
 
     Loads configuration, applies command-line overrides for epochs, batch size, and learning rate, initializes randomness and logging, selects the compute device, ensures output directories, prepares data loaders and model, constructs optimizer, scheduler, and loss, runs the training loop via Trainer, and logs final metrics and model save location.
     """
-    parser = argparse.ArgumentParser(
-        description="Train rice leaf disease classification models"
-    )
+    parser = argparse.ArgumentParser(description="Train rice leaf disease classification models")
     parser.add_argument(
         "--data-dir",
         type=str,
@@ -72,8 +70,7 @@ def main():
     )
     num_classes = len(class_names)
     logger.info(
-        f"Dataset loaded: {len(train_loader.dataset)} training samples, "
-        f"{len(val_loader.dataset)} validation samples"
+        f"Dataset loaded: {len(train_loader.dataset)} training samples, " f"{len(val_loader.dataset)} validation samples"
     )
     logger.info(f"Number of classes: {num_classes}")
     logger.info(f"Classes: {class_names}")
@@ -86,9 +83,7 @@ def main():
         pretrained=config["model"]["pretrained"],
         dropout=config["model"]["dropout"],
     )
-    logger.info(
-        f"Model created with {sum(p.numel() for p in model.parameters()):,} parameters"
-    )
+    logger.info(f"Model created with {sum(p.numel() for p in model.parameters()):,} parameters")
 
     # Create optimizer
     optimizer = get_optimizer(

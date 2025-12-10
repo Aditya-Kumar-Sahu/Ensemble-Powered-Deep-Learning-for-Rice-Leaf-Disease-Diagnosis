@@ -42,10 +42,7 @@ def get_model(
 
     if model_name_lower not in MODEL_REGISTRY:
         supported_models = ", ".join(MODEL_REGISTRY.keys())
-        raise ValueError(
-            f"Unsupported model: {model_name}. "
-            f"Supported models are: {supported_models}"
-        )
+        raise ValueError(f"Unsupported model: {model_name}. " f"Supported models are: {supported_models}")
 
     model_fn = MODEL_REGISTRY[model_name_lower]
     return model_fn(num_classes=num_classes, pretrained=pretrained, dropout=dropout)

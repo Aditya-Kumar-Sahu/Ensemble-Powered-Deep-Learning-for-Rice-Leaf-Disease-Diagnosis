@@ -80,17 +80,11 @@ def calculate_metrics(
     """
     metrics = {
         "accuracy": accuracy_score(y_true, y_pred),
-        "precision_macro": precision_score(
-            y_true, y_pred, average="macro", zero_division=0
-        ),
+        "precision_macro": precision_score(y_true, y_pred, average="macro", zero_division=0),
         "recall_macro": recall_score(y_true, y_pred, average="macro", zero_division=0),
         "f1_macro": f1_score(y_true, y_pred, average="macro", zero_division=0),
-        "precision_weighted": precision_score(
-            y_true, y_pred, average="weighted", zero_division=0
-        ),
-        "recall_weighted": recall_score(
-            y_true, y_pred, average="weighted", zero_division=0
-        ),
+        "precision_weighted": precision_score(y_true, y_pred, average="weighted", zero_division=0),
+        "recall_weighted": recall_score(y_true, y_pred, average="weighted", zero_division=0),
         "f1_weighted": f1_score(y_true, y_pred, average="weighted", zero_division=0),
     }
 
@@ -100,9 +94,7 @@ def calculate_metrics(
             if num_classes is None:
                 num_classes = len(np.unique(y_true))
             y_true_bin = np.eye(num_classes)[y_true]
-            metrics["roc_auc_ovr"] = roc_auc_score(
-                y_true_bin, y_probs, average="macro", multi_class="ovr"
-            )
+            metrics["roc_auc_ovr"] = roc_auc_score(y_true_bin, y_probs, average="macro", multi_class="ovr")
         except Exception as e:
             print(f"Warning: Could not calculate ROC-AUC: {e}")
 

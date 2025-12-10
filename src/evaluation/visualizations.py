@@ -88,9 +88,7 @@ def plot_training_history(
 
             ax.set_xlabel("Epoch", fontsize=11)
             ax.set_ylabel(metric.capitalize(), fontsize=11)
-            ax.set_title(
-                f"{metric.capitalize()} over Epochs", fontsize=12, fontweight="bold"
-            )
+            ax.set_title(f"{metric.capitalize()} over Epochs", fontsize=12, fontweight="bold")
             ax.legend()
             ax.grid(True, alpha=0.3)
 

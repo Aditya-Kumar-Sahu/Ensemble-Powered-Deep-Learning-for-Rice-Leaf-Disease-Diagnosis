@@ -30,9 +30,7 @@ def main():
 
     Parses CLI options, loads configuration and dataset, evaluates either a single specified model or an ensemble of models, computes metrics, saves a confusion matrix image and a classification report to the output directory, and prints the classification report and model summary to stdout. Requires either the --model or --ensemble flag to be provided; uses --models-dir for checkpoints and --config for the YAML configuration.
     """
-    parser = argparse.ArgumentParser(
-        description="Evaluate rice leaf disease classification models"
-    )
+    parser = argparse.ArgumentParser(description="Evaluate rice leaf disease classification models")
     parser.add_argument(
         "--data-dir",
         type=str,
@@ -58,9 +56,7 @@ def main():
         parser.error("Either --model or --ensemble must be specified")
 
     # Load configuration
-    model_config_path = (
-        f"configs/model_configs/{args.model}.yaml" if args.model else None
-    )
+    model_config_path = f"configs/model_configs/{args.model}.yaml" if args.model else None
     config = load_config(model_config_path=model_config_path)
 
     # Set seed

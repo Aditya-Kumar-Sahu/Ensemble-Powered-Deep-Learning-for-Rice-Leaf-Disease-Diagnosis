@@ -209,10 +209,7 @@ class RiceDiseaseAPI:
         results = {
             "predicted_class": predicted_class,
             "confidence": float(confidence),
-            "top_predictions": {
-                self.class_names[idx]: float(prob)
-                for idx, prob in zip(topk_indices, topk_probs)
-            },
+            "top_predictions": {self.class_names[idx]: float(prob) for idx, prob in zip(topk_indices, topk_probs)},
             "model_used": model_name,
         }
 

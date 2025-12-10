@@ -95,9 +95,7 @@ def main():
     Parses command-line arguments, loads configuration and model weights, prepares image transforms,
     performs a single-image prediction, and prints the predicted class, its confidence, and a top-5 list.
     """
-    parser = argparse.ArgumentParser(
-        description="Perform inference on rice leaf disease images"
-    )
+    parser = argparse.ArgumentParser(description="Perform inference on rice leaf disease images")
     parser.add_argument(
         "--image",
         type=str,
@@ -184,9 +182,7 @@ def main():
 
     print("\nTop 5 Predictions:")
     for i, pred in enumerate(result["top5_predictions"], 1):
-        print(
-            f"  {i}. {pred['class']:<30} {pred['confidence']:.4f} ({pred['confidence']*100:.2f}%)"
-        )
+        print(f"  {i}. {pred['class']:<30} {pred['confidence']:.4f} ({pred['confidence']*100:.2f}%)")
     print("=" * 60)
 
 

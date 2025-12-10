@@ -98,15 +98,11 @@ class TestCalculateMetrics:
         assert 0 <= metrics["accuracy"] <= 1
         assert 0 <= metrics["f1_macro"] <= 1
 
-    def test_calculate_metrics_with_probabilities(
-        self, sample_predictions, sample_probabilities
-    ):
+    def test_calculate_metrics_with_probabilities(self, sample_predictions, sample_probabilities):
         """Test metrics calculation with probabilities."""
         y_true, y_pred = sample_predictions
 
-        metrics = calculate_metrics(
-            y_true, y_pred, y_probs=sample_probabilities, num_classes=3
-        )
+        metrics = calculate_metrics(y_true, y_pred, y_probs=sample_probabilities, num_classes=3)
 
         assert "roc_auc_ovr" in metrics
         assert 0 <= metrics["roc_auc_ovr"] <= 1
@@ -178,9 +174,7 @@ class TestPredictSingle:
         mock_model.side_effect = mock_forward
 
         with patch("torch.no_grad"):
-            y_true, y_pred, y_probs = predict_single(
-                mock_model, mock_dataloader, device
-            )
+            y_true, y_pred, y_probs = predict_single(mock_model, mock_dataloader, device)
 
         assert len(y_true) == 2
         assert len(y_pred) == 2
@@ -389,9 +383,7 @@ class TestVisualizationFunctions:
 
             with patch("matplotlib.pyplot.show"):
                 with patch("matplotlib.pyplot.figure"):
-                    compare_models(
-                        ["model1", "model2"], metric="loss", log_folder=tmpdir
-                    )
+                    compare_models(["model1", "model2"], metric="loss", log_folder=tmpdir)
 
     def test_compare_models_missing_history(self, capsys):
         """Test model comparison with missing history."""
@@ -400,9 +392,7 @@ class TestVisualizationFunctions:
         with tempfile.TemporaryDirectory() as tmpdir:
             with patch("matplotlib.pyplot.show"):
                 with patch("matplotlib.pyplot.figure"):
-                    compare_models(
-                        ["nonexistent_model"], metric="loss", log_folder=tmpdir
-                    )
+                    compare_models(["nonexistent_model"], metric="loss", log_folder=tmpdir)
 
             captured = capsys.readouterr()
             assert "Warning" in captured.out or "not found" in captured.out

@@ -71,9 +71,7 @@ def test_save_and_load_checkpoint():
 
         # Save checkpoint
         metrics = {"loss": 0.5, "accuracy": 0.95}
-        save_checkpoint(
-            model, optimizer, epoch=10, metrics=metrics, filepath=checkpoint_path
-        )
+        save_checkpoint(model, optimizer, epoch=10, metrics=metrics, filepath=checkpoint_path)
 
         assert os.path.exists(checkpoint_path)
 
@@ -233,18 +231,14 @@ class TestCheckpointAdvanced:
 
             # Save checkpoint
             metrics = {"loss": 0.5, "accuracy": 0.95}
-            save_checkpoint(
-                model, optimizer, epoch=10, metrics=metrics, filepath=checkpoint_path
-            )
+            save_checkpoint(model, optimizer, epoch=10, metrics=metrics, filepath=checkpoint_path)
 
             # Create new model and optimizer
             new_model = torch.nn.Linear(10, 5)
             new_optimizer = torch.optim.Adam(new_model.parameters(), lr=0.001)
 
             # Load checkpoint
-            checkpoint = load_checkpoint(
-                checkpoint_path, model=new_model, optimizer=new_optimizer
-            )
+            checkpoint = load_checkpoint(checkpoint_path, model=new_model, optimizer=new_optimizer)
 
             # Verify state was loaded
             assert checkpoint["epoch"] == 10
@@ -258,9 +252,7 @@ class TestCheckpointAdvanced:
         with tempfile.TemporaryDirectory() as tmpdir:
             checkpoint_path = os.path.join(tmpdir, "checkpoint.pth")
 
-            save_checkpoint(
-                model, optimizer, epoch=5, metrics={}, filepath=checkpoint_path
-            )
+            save_checkpoint(model, optimizer, epoch=5, metrics={}, filepath=checkpoint_path)
 
             # Load to CPU explicitly
             checkpoint = load_checkpoint(checkpoint_path, device=torch.device("cpu"))
