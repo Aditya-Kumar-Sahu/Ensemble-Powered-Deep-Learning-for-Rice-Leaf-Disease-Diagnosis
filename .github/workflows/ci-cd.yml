@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.9', '3.10', '3.11']
+        python-version: ['3.10', '3.11']
 
     steps:
     - uses: actions/checkout@v3
@@ -29,11 +29,10 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
     
-    - name: Install dependencies with uv
+    - name: Install dependencies with pip
       run: |
-        pip install uv # Install uv itself
-        uv pip install -r requirements.txt
-        uv pip install pytest pytest-cov black flake8 mypy yamllint nbstripout
+        pip install -r requirements.txt
+        pip install pytest pytest-cov black flake8 mypy yamllint nbstripout
     
     - name: Check for notebook output cells
       run: |
