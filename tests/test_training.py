@@ -465,3 +465,25 @@ class TestTrainerEdgeCases:
 
         # Model should be in train mode after training
         assert simple_model.training
+
+    def test_trainer_with_mlflow(self, simple_model, simple_dataloader, device):
+        """Test that log_metrics is called during training."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            criterion = nn.CrossEntropyLoss()
+            optimizer = get_optimizer(simple_model, "adam")
+            log_metrics_mock = Mock()
+
+            trainer = Trainer(
+                model=simple_model,
+                train_loader=simple_dataloader,
+                val_loader=simple_dataloader,
+                criterion=criterion,
+                optimizer=optimizer,
+                device=device,
+                log_metrics=log_metrics_mock,
+            )
+
+            trainer.train(num_epochs=2, save_dir=tmpdir, model_name="test_model")
+
+            # log_metrics should be called once per epoch
+            assert log_metrics_mock.call_count == 2

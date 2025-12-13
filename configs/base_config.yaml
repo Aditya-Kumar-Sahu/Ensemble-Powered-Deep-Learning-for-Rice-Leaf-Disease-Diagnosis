@@ -36,3 +36,8 @@ seed: 42
 
 # Device settings
 device: "auto"  # Options: auto, cuda, cpu
+
+# MLflow settings
+mlflow:
+  experiment_name: "rice_leaf_disease_classification"
+  run_name: "default_run"

@@ -67,7 +67,7 @@ def main():
     logger.info("Starting evaluation script")
 
     # Get device
-    device = get_device(config["device"])
+    device = get_device()
     logger.info(f"Using device: {device}")
 
     # Load data

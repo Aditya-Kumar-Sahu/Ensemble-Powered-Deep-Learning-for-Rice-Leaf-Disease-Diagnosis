@@ -1,13 +1,15 @@
 """Training loop and trainer class."""
 
 import time
-from typing import Dict, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import numpy as np
 
+import mlflow
+import mlflow.pytorch
 from ..utils.checkpoint import (
     save_checkpoint,
     save_history,
@@ -15,6 +17,7 @@ from ..utils.checkpoint import (
     count_parameters,
 )
 from ..utils.device import get_device
+from ..utils.mlflow import log_params_from_config
 
 
 class Trainer:
@@ -29,6 +32,7 @@ class Trainer:
         optimizer: torch.optim.Optimizer,
         device: Optional[torch.device] = None,
         scheduler: Optional[torch.optim.lr_scheduler._LRScheduler] = None,
+        config: Dict[str, Any] = None,
     ):
         """
         Create a Trainer that manages training and validation loops, history tracking, device placement, and optional learning-rate scheduling.
@@ -41,6 +45,7 @@ class Trainer:
             optimizer: Optimizer used to update model parameters.
             device: Device for computation; if None, a default device is selected automatically.
             scheduler: Optional learning-rate scheduler applied during training.
+            config: The configuration dictionary.
         """
         self.model = model
         self.train_loader = train_loader
@@ -49,6 +54,7 @@ class Trainer:
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.device = device if device else get_device()
+        self.config = config
 
         self.model.to(self.device)
 
@@ -162,42 +168,58 @@ class Trainer:
         best_val_acc = 0.0
         start_time = time.time()
 
-        for epoch in range(num_epochs):
-            print(f"\nEpoch {epoch + 1}/{num_epochs}")
-            print("-" * 50)
+        with mlflow.start_run() as run:
+            log_params_from_config(self.config)
 
-            # Train and validate
-            train_loss, train_acc = self.train_epoch()
-            val_loss, val_acc = self.validate_epoch()
+            for epoch in range(num_epochs):
+                print(f"\nEpoch {epoch + 1}/{num_epochs}")
+                print("-" * 50)
 
-            # Update learning rate
-            if self.scheduler is not None:
-                if isinstance(self.scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
-                    self.scheduler.step(val_loss)
-                else:
-                    self.scheduler.step()
+                # Train and validate
+                train_loss, train_acc = self.train_epoch()
+                val_loss, val_acc = self.validate_epoch()
 
-            # Get current learning rate
-            current_lr = self.optimizer.param_groups[0]["lr"]
+                # Update learning rate
+                if self.scheduler is not None:
+                    if isinstance(self.scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
+                        self.scheduler.step(val_loss)
+                    else:
+                        self.scheduler.step()
 
-            # Store history
-            self.history["train_loss"].append(train_loss)
-            self.history["val_loss"].append(val_loss)
-            self.history["train_acc"].append(train_acc)
-            self.history["val_acc"].append(val_acc)
-            self.history["learning_rates"].append(current_lr)
+                # Get current learning rate
+                current_lr = self.optimizer.param_groups[0]["lr"]
 
-            # Print epoch summary
-            print(f"Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.2f}%")
-            print(f"Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.2f}%")
-            print(f"Learning Rate: {current_lr:.6f}")
+                # Store history
+                self.history["train_loss"].append(train_loss)
+                self.history["val_loss"].append(val_loss)
+                self.history["train_acc"].append(train_acc)
+                self.history["val_acc"].append(val_acc)
+                self.history["learning_rates"].append(current_lr)
 
-            # Save best model
-            if val_acc > best_val_acc:
-                best_val_acc = val_acc
-                save_path = f"{save_dir}/{model_name}.pth"
-                torch.save(self.model.state_dict(), save_path)
-                print(f"✓ Saved best model to {save_path}")
+                # Log metrics to MLflow
+                metrics = {
+                    "train_loss": train_loss,
+                    "train_acc": train_acc,
+                    "val_loss": val_loss,
+                    "val_acc": val_acc,
+                    "learning_rate": current_lr,
+                }
+                mlflow.log_metrics(metrics, step=epoch)
+
+                # Print epoch summary
+                print(f"Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.2f}%")
+                print(f"Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.2f}%")
+                print(f"Learning Rate: {current_lr:.6f}")
+
+                # Save best model
+                if val_acc > best_val_acc:
+                    best_val_acc = val_acc
+                    save_path = f"{save_dir}/{model_name}.pth"
+                    torch.save(self.model.state_dict(), save_path)
+                    print(f"✓ Saved best model to {save_path}")
+
+            # Log the best model as an artifact
+            mlflow.pytorch.log_model(self.model, "model", registered_model_name=model_name)
 
         # Calculate total training time
         total_time = time.time() - start_time
@@ -208,7 +230,8 @@ class Trainer:
         self.history["best_val_acc"] = best_val_acc
 
         # Save history
-        save_history(self.history, model_name)
+        history_path = save_history(self.history, model_name)
+        mlflow.log_artifact(history_path)
 
         print(f"\n{'='*50}")
         print(f"Training completed in {total_time:.2f}s")

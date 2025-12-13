@@ -20,6 +20,9 @@ scikit-learn>=1.0.2
 # Progress tracking
 tqdm>=4.64.0
 
+# MLOps
+mlflow>=2.0
+
 # Development dependencies (optional)
 pytest>=7.0.0
 black>=22.0.0

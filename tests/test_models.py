@@ -8,6 +8,7 @@ from src.models import (
     get_mobilenet_v2,
     get_resnet50,
     get_efficientnet_b0,
+    EnsembleModel,
 )
 
 
@@ -123,3 +124,20 @@ def test_model_with_dropout(num_classes, input_tensor, batch_size):
     # Test forward pass
     output = model(input_tensor)
     assert output.shape == (batch_size, num_classes)
+
+
+def test_ensemble_model(num_classes, input_tensor, batch_size):
+    """Test the EnsembleModel."""
+    model1 = get_model("resnet50", num_classes)
+    model2 = get_model("mobilenetv2", num_classes)
+    models = [model1, model2]
+
+    # Test soft voting
+    ensemble_soft = EnsembleModel(models, voting="soft")
+    output_soft = ensemble_soft(input_tensor)
+    assert output_soft.shape == (batch_size, num_classes)
+
+    # Test hard voting
+    ensemble_hard = EnsembleModel(models, voting="hard")
+    output_hard = ensemble_hard(input_tensor)
+    assert output_hard.shape == (batch_size, num_classes)

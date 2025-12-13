@@ -82,6 +82,7 @@ htmlcov/
 dmypy.json
 
 # AI utilities
+.gemini/
 GEMINI.md
 PROGRESS.md
 instructions.json

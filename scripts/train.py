@@ -38,6 +38,12 @@ def main():
         choices=["resnet50", "mobilenetv2", "efficientnetb0"],
         help="Model architecture to train",
     )
+    parser.add_argument(
+        "--output-dir",
+        type=str,
+        default="models",
+        help="Path to save trained models",
+    )
 
     args = parser.parse_args()
 
@@ -55,7 +61,7 @@ def main():
     logger.info(f"Configuration: {config}")
 
     # Get device
-    device = get_device(config["device"])
+    device = get_device()
     logger.info(f"Using device: {device}")
 
     # Create output directories
@@ -112,6 +118,7 @@ def main():
         optimizer=optimizer,
         scheduler=scheduler,
         device=device,
+        config=config,
     )
 
     # Train model
