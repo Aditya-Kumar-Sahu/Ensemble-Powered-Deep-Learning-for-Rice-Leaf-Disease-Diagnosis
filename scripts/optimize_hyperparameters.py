@@ -3,6 +3,7 @@ Hyperparameter optimization script using Optuna.
 """
 
 import argparse
+import copy
 import sys
 from pathlib import Path
 import optuna
@@ -35,7 +36,7 @@ def objective(trial: optuna.Trial) -> float:
     weight_decay = trial.suggest_float("weight_decay", 1e-5, 1e-3, log=True)
 
     # Create a trial-specific config by overriding the base config
-    trial_config = BASE_CONFIG.copy()
+    trial_config = copy.deepcopy(BASE_CONFIG)
     trial_config["training"]["learning_rate"] = lr
     trial_config["model"]["dropout"] = dropout
     trial_config["training"]["optimizer"] = optimizer_name
@@ -122,7 +123,12 @@ def main():
     NUM_CLASSES = len(CLASS_NAMES)
 
     # Create study
-    study = optuna.create_study(direction="maximize")
+    study = optuna.create_study(
+        study_name=f"{args.model}_optimization",
+        direction="maximize",
+        storage=f"sqlite:///optuna_{args.model}.db",
+        load_if_exists=True,
+    )
     study.optimize(objective, n_trials=args.n_trials)
 
     print("Number of finished trials: ", len(study.trials))
