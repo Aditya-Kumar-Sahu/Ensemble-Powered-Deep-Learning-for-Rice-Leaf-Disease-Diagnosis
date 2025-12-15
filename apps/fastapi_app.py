@@ -7,8 +7,8 @@ import sys
 from pathlib import Path
 import torch
 import numpy as np
-from PIL import Image
-from fastapi import FastAPI, File, UploadFile
+from PIL import Image, UnidentifiedImageError
+from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse
 
 # Add parent directory to path
@@ -69,30 +69,40 @@ async def predict(file: UploadFile = File(...)):
         file (UploadFile): The image file to be classified.
 
     Returns:
-        JSONResponse: A JSON response containing the predicted class and confidence score.
+        JSONResponse: A JSON response containing the predicted class and confidence score,
+                      or an error response.
     """
-    # Read image file
-    contents = await file.read()
-    image = Image.open(io.BytesIO(contents)).convert("RGB")
-    image_np = np.array(image)
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=415, detail="Unsupported media type. Please upload an image.")
 
-    # Preprocess the image
-    input_tensor = val_transforms(image=image_np)["image"].unsqueeze(0)
-    input_tensor = input_tensor.to(device)
+    try:
+        contents = await file.read()
+        if not contents:
+            raise HTTPException(status_code=400, detail="The uploaded file is empty.")
 
-    # Perform inference
-    with torch.no_grad():
-        outputs = model(input_tensor)
-        probabilities = torch.nn.functional.softmax(outputs[0], dim=0)
-        confidence, predicted_class_idx = torch.max(probabilities, 0)
+        image = Image.open(io.BytesIO(contents)).convert("RGB")
+        image_np = np.array(image)
 
-    # Assuming class names can be retrieved or are known
-    # For simplicity, we'll just return the class index.
-    # A more robust solution would map this index to a class name.
-    predicted_class = predicted_class_idx.item()
-    confidence_score = confidence.item()
+        # Preprocess the image
+        input_tensor = val_transforms(image=image_np)["image"].unsqueeze(0)
+        input_tensor = input_tensor.to(device)
 
-    return JSONResponse(content={"predicted_class_index": predicted_class, "confidence": f"{confidence_score:.4f}"})
+        # Perform inference
+        with torch.no_grad():
+            outputs = model(input_tensor)
+            probabilities = torch.nn.functional.softmax(outputs[0], dim=0)
+            confidence, predicted_class_idx = torch.max(probabilities, 0)
+
+        predicted_class = predicted_class_idx.item()
+        confidence_score = confidence.item()
+
+        return JSONResponse(content={"predicted_class_index": predicted_class, "confidence": f"{confidence_score:.4f}"})
+    except UnidentifiedImageError:
+        raise HTTPException(status_code=422, detail="Invalid or corrupt image file.")
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Inference failed with error: {e}")
+        raise HTTPException(status_code=500, detail="An internal error occurred during inference.")
 
 
 # To run this app:

@@ -52,19 +52,26 @@ def predict(image: np.ndarray) -> dict:
     Returns:
         dict: A dictionary mapping class names to their confidence scores.
     """
-    # Preprocess the image
-    input_tensor = val_transforms(image=image)["image"].unsqueeze(0)
-    input_tensor = input_tensor.to(device)
+    if image is None:
+        raise gr.Error("No image uploaded. Please upload an image to get a prediction.")
 
-    # Perform inference
-    with torch.no_grad():
-        outputs = model(input_tensor)
-        probabilities = torch.nn.functional.softmax(outputs[0], dim=0)
+    try:
+        # Preprocess the image
+        input_tensor = val_transforms(image=image)["image"].unsqueeze(0)
+        input_tensor = input_tensor.to(device)
 
-    # Create a dictionary of class names and their probabilities
-    confidence_scores = {CLASS_NAMES[i]: prob.item() for i, prob in enumerate(probabilities)}
+        # Perform inference
+        with torch.no_grad():
+            outputs = model(input_tensor)
+            probabilities = torch.nn.functional.softmax(outputs[0], dim=0)
 
-    return confidence_scores
+        # Create a dictionary of class names and their probabilities
+        confidence_scores = {CLASS_NAMES[i]: prob.item() for i, prob in enumerate(probabilities)}
+
+        return confidence_scores
+    except Exception as e:
+        print(f"An error occurred during prediction: {e}")
+        raise gr.Error("Failed to process the image. Please try another one or ensure it is a valid format (JPEG, PNG).")
 
 
 # --- Gradio Interface ---
