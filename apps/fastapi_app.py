@@ -15,7 +15,7 @@ from fastapi.responses import JSONResponse
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.models import get_model
-from src.utils import load_config
+from src.utils import load_config, get_disease_info
 from src.data.augmentations import get_val_transforms
 
 # --- Application Setup ---
@@ -42,7 +42,10 @@ if not model_path.exists():
     raise FileNotFoundError(f"Model checkpoint not found at {model_path}. Please train the model first.")
 
 # Assuming 15 classes for the Rice Leaf Disease dataset
-NUM_CLASSES = 15
+# Ideally, this should be loaded from a file or config
+CLASS_NAMES = ["Bacterialblight", "Blast", "Brownspot", "Tungro"]  # Placeholder, ensure this matches training
+NUM_CLASSES = len(CLASS_NAMES)
+
 model = get_model(MODEL_NAME, num_classes=NUM_CLASSES)
 model.load_state_dict(torch.load(model_path, map_location=device))
 model.to(device)
@@ -93,10 +96,22 @@ async def predict(file: UploadFile = File(...)):
             probabilities = torch.nn.functional.softmax(outputs[0], dim=0)
             confidence, predicted_class_idx = torch.max(probabilities, 0)
 
-        predicted_class = predicted_class_idx.item()
+        predicted_class_index = predicted_class_idx.item()
+        predicted_class_name = CLASS_NAMES[predicted_class_index]
         confidence_score = confidence.item()
 
-        return JSONResponse(content={"predicted_class_index": predicted_class, "confidence": f"{confidence_score:.4f}"})
+        # Get disease info
+        disease_info = get_disease_info(predicted_class_name)
+
+        return JSONResponse(
+            content={
+                "predicted_class": predicted_class_name,
+                "confidence": f"{confidence_score:.4f}",
+                "disease_info": disease_info,
+            }
+        )
+    except IndexError:
+        raise HTTPException(status_code=500, detail="Model prediction index out of bounds. Check class names.")
     except UnidentifiedImageError:
         raise HTTPException(status_code=422, detail="Invalid or corrupt image file.")
     except Exception as e:
