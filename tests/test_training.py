@@ -11,6 +11,15 @@ from unittest.mock import Mock, patch
 from src.training.trainer import Trainer, train_model
 from src.training.optimizer import get_optimizer
 from src.training.scheduler import get_scheduler
+import mlflow
+
+
+@pytest.fixture(autouse=True)
+def cleanup_mlflow():
+    """Ensure MLflow runs are ended after each test."""
+    yield
+    while mlflow.active_run():
+        mlflow.end_run()
 
 
 @pytest.fixture
@@ -338,10 +347,10 @@ class TestTrainer:
             # Learning rate should decrease
             lrs = history["learning_rates"]
             assert len(lrs) == 3
-            assert lrs[0] == 1e-3
-            # With step scheduler (step_size=1, gamma=0.5), lr should be halved each epoch
-            assert lrs[1] == pytest.approx(5e-4)
-            assert lrs[2] == pytest.approx(2.5e-4)
+            # With step scheduler (step_size=1, gamma=0.5), lr is halved at the end of each epoch before logging
+            assert lrs[0] == pytest.approx(5e-4)
+            assert lrs[1] == pytest.approx(2.5e-4)
+            assert lrs[2] == pytest.approx(1.25e-4)
 
 
 class TestTrainModel:
@@ -467,23 +476,24 @@ class TestTrainerEdgeCases:
         assert simple_model.training
 
     def test_trainer_with_mlflow(self, simple_model, simple_dataloader, device):
-        """Test that log_metrics is called during training."""
+        """Test that mlflow.log_metrics is called during training."""
         with tempfile.TemporaryDirectory() as tmpdir:
             criterion = nn.CrossEntropyLoss()
             optimizer = get_optimizer(simple_model, "adam")
-            log_metrics_mock = Mock()
 
-            trainer = Trainer(
-                model=simple_model,
-                train_loader=simple_dataloader,
-                val_loader=simple_dataloader,
-                criterion=criterion,
-                optimizer=optimizer,
-                device=device,
-                log_metrics=log_metrics_mock,
-            )
+            with patch("src.training.trainer.mlflow.log_metrics") as log_metrics_mock, patch(
+                "src.training.trainer.mlflow.start_run"
+            ):
+                trainer = Trainer(
+                    model=simple_model,
+                    train_loader=simple_dataloader,
+                    val_loader=simple_dataloader,
+                    criterion=criterion,
+                    optimizer=optimizer,
+                    device=device,
+                )
 
-            trainer.train(num_epochs=2, save_dir=tmpdir, model_name="test_model")
+                trainer.train(num_epochs=2, save_dir=tmpdir, model_name="test_model")
 
-            # log_metrics should be called once per epoch
-            assert log_metrics_mock.call_count == 2
+                # log_metrics should be called once per epoch
+                assert log_metrics_mock.call_count == 2

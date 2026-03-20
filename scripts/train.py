@@ -16,6 +16,7 @@ from src.data import get_dataloaders
 from src.models import get_model
 from src.training import Trainer, get_optimizer, get_scheduler
 from src.utils import set_seed, get_device, setup_logger, ensure_dirs, load_config
+import mlflow
 
 
 def main():
@@ -63,6 +64,10 @@ def main():
     # Get device
     device = get_device()
     logger.info(f"Using device: {device}")
+
+    # Set MLFlow experiment
+    if "mlflow" in config and "experiment_name" in config["mlflow"]:
+        mlflow.set_experiment(config["mlflow"]["experiment_name"])
 
     # Create output directories
     output_dir = Path(config["output"]["models_dir"])

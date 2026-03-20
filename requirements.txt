@@ -29,6 +29,7 @@ optuna>=3.0.0
 
 # Development dependencies (optional)
 pytest>=7.0.0
+pytest-xdist
 black>=22.0.0
 flake8>=4.0.0
 mypy>=0.950

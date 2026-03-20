@@ -22,4 +22,5 @@ def log_params_from_config(config: Dict[str, Any]) -> None:
                 items.append((new_key, v))
         return dict(items)
 
-    mlflow.log_params(flatten_dict(config))
+    if config is not None:
+        mlflow.log_params(flatten_dict(config))

@@ -105,23 +105,29 @@ def test_training_pipeline_integration(dummy_integration_dataset_dir, dummy_conf
         if test_logs_dir.exists():
             shutil.rmtree(test_logs_dir)
 
+        import sys
+        import os
+
         command = [
-            "python",
+            sys.executable,
             "scripts/train.py",
             "--data-dir",
             dummy_integration_dataset_dir,
             "--model",
             "resnet50",
-            # We don't specify --config directly, as scripts/train.py uses a default
-            # based on project structure. The dummy_config_dir provides the files.
         ]
+
+        env = dict(os.environ)
+        env["MLFLOW_TRACKING_URI"] = Path(mlflow_tmp_dir).as_uri()
+        env["MLFLOW_EXPERIMENT_NAME"] = "test_experiment"
 
         # Ensure the subprocess uses the correct Python interpreter if in a venv
         # For testing, we assume 'python' is already the correct interpreter in path
 
         # Run the training script
-        result = subprocess.run(command, capture_output=True, text=True, check=False)  # Changed check=True to check=False
-
+        result = subprocess.run(
+            command, capture_output=True, text=True, check=False, env=env
+        )  # Changed check=True to check=False
         # Print stdout and stderr for debugging in case of failure
         print("STDOUT:", result.stdout)
         print("STDERR:", result.stderr)
@@ -129,7 +135,7 @@ def test_training_pipeline_integration(dummy_integration_dataset_dir, dummy_conf
         assert result.returncode == 0, f"Training script failed with error: {result.stderr}"
 
         # Check if MLflow run was created and logs exist
-        runs = mlflow.search_runs(experiment_names=["test_experiment"])
+        runs = mlflow.search_runs(experiment_names=["rice_leaf_disease_classification"])
         assert len(runs) > 0, "MLflow run was not created."
 
         run_id = runs.iloc[0].run_id

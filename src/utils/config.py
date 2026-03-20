@@ -21,9 +21,13 @@ def load_config(base_config_path: str = "configs/base_config.yaml", model_config
         config = yaml.safe_load(f)
 
     if model_config_path:
-        with open(model_config_path, "r") as f:
-            model_config = yaml.safe_load(f)
-        _recursive_merge(config, model_config)
+        model_path = Path(model_config_path)
+        if model_path.exists():
+            with open(model_config_path, "r") as f:
+                model_config = yaml.safe_load(f)
+            _recursive_merge(config, model_config)
+        else:
+            print(f"Warning: Model config {model_config_path} not found. Proceeding with base config only.")
 
     return config
 

@@ -141,6 +141,8 @@ class Trainer:
                 # Update progress bar
                 pbar.set_postfix({"loss": loss.item(), "acc": 100.0 * correct / total})
 
+        if total == 0:
+            return 0.0, 0.0
         epoch_loss = running_loss / total
         epoch_acc = 100.0 * correct / total
 

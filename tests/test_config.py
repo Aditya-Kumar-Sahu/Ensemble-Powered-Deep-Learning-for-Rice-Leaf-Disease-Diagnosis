@@ -11,8 +11,13 @@ MODEL_CONFIG_PATH = Path("configs/model_configs/test_model_config.yaml")
 
 
 @pytest.fixture(scope="module", autouse=True)
-def setup_test_configs():
+def setup_test_configs(tmp_path_factory):
     """Create dummy config files for testing and clean up afterwards."""
+    tmp_path = tmp_path_factory.mktemp("configs")
+    global BASE_CONFIG_PATH, MODEL_CONFIG_PATH
+    BASE_CONFIG_PATH = tmp_path / "test_base_config.yaml"
+    MODEL_CONFIG_PATH = tmp_path / "model_configs" / "test_model_config.yaml"
+
     # Ensure config directories exist
     BASE_CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
     MODEL_CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -40,8 +45,14 @@ def setup_test_configs():
     yield  # Run tests
 
     # Clean up
-    BASE_CONFIG_PATH.unlink(missing_ok=True)
-    MODEL_CONFIG_PATH.unlink(missing_ok=True)
+    try:
+        BASE_CONFIG_PATH.unlink(missing_ok=True)
+    except PermissionError:
+        pass
+    try:
+        MODEL_CONFIG_PATH.unlink(missing_ok=True)
+    except PermissionError:
+        pass
     # Clean up the model_configs directory if empty, or parent 'configs'
     try:
         MODEL_CONFIG_PATH.parent.rmdir()

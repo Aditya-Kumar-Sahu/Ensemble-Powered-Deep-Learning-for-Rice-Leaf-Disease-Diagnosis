@@ -57,6 +57,9 @@ datasets/
 # Kaggle
 .kaggle/
 
+# ML runs
+mlruns/
+
 # Results
 results/*.png
 results/*.txt

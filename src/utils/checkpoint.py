@@ -79,7 +79,7 @@ def load_checkpoint(
     return checkpoint
 
 
-def save_history(history: Dict[str, Any], model_name: str, folder: str = "logs") -> None:
+def save_history(history: Dict[str, Any], model_name: str, folder: str = "logs") -> str:
     """
     Save training history to a file named "<model_name>_history.npy" in the specified folder.
 
@@ -87,9 +87,14 @@ def save_history(history: Dict[str, Any], model_name: str, folder: str = "logs")
         history (Dict[str, Any]): Training history data to persist.
         model_name (str): Model identifier used to form the history filename.
         folder (str): Destination directory; created if it does not exist.
+
+    Returns:
+        str: The path to the saved history file.
     """
     ensure_dirs([folder])
-    np.save(os.path.join(folder, f"{model_name}_history.npy"), history)
+    path = os.path.join(folder, f"{model_name}_history.npy")
+    np.save(path, history)
+    return path
 
 
 def load_history(model_name: str, folder: str = "logs") -> Dict[str, Any]:

@@ -183,7 +183,7 @@ class TestPredictSingle:
     def test_predict_single_output_shapes(self):
         """Test output shapes of predict_single."""
         # Create a simple model
-        model = torch.nn.Linear(3 * 224 * 224, 5)
+        model = torch.nn.Sequential(torch.nn.Flatten(), torch.nn.Linear(3 * 224 * 224, 5))
 
         # Create simple dataloader
         images = torch.randn(4, 3, 224, 224)

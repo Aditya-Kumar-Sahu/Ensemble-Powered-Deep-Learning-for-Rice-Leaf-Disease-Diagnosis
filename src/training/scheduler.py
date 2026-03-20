@@ -30,9 +30,12 @@ def get_scheduler(
     Raises:
         ValueError: If `scheduler_name` is not one of the supported options.
     """
+    if scheduler_name is None:
+        return None
+
     scheduler_name = scheduler_name.lower()
 
-    if scheduler_name == "none" or scheduler_name is None:
+    if scheduler_name == "none":
         return None
 
     elif scheduler_name == "cosine":

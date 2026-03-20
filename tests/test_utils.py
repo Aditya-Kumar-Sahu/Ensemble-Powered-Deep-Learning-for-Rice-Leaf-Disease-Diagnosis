@@ -143,6 +143,13 @@ class TestLogging:
                 content = f.read()
                 assert "Test message" in content
 
+            # Must close handlers or Windows denies deletion of tempdir
+            logger = logging.getLogger("rice_leaf_disease")
+            handlers = logger.handlers[:]
+            for handler in handlers:
+                handler.close()
+                logger.removeHandler(handler)
+
     def test_setup_logger_file_in_nested_dir(self):
         """Test logger setup with file in nested directory."""
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -153,6 +160,13 @@ class TestLogging:
 
             # Check file and directories were created
             assert os.path.exists(log_file)
+
+            # Must close handlers or Windows denies deletion of tempdir
+            logger = logging.getLogger("rice_leaf_disease")
+            handlers = logger.handlers[:]
+            for handler in handlers:
+                handler.close()
+                logger.removeHandler(handler)
 
     def test_logger_handlers_reset(self):
         """Test that logger handlers are properly reset."""

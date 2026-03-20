@@ -1,314 +1,144 @@
 # Ensemble-Powered Deep Learning for Rice Leaf Disease Diagnosis
 
-A production-ready deep learning system for classifying rice leaf diseases into 15 distinct categories. This project leverages PyTorch and ensemble learning techniques to provide accurate disease detection for agronomists and farmers.
+A production-ready, full-stack machine learning system for classifying rice leaf diseases. This project has been refactored from a research notebook into a modular, scalable, and deployable application.
 
-## 🌟 Features
+## 🚀 Features
 
-### Core Capabilities
-- **Multi-Model Ensemble**: Combines predictions from MobileNetV2, ResNet50, and EfficientNet-B0
-- **15 Disease Classes**: Comprehensive classification covering major rice leaf diseases
-- **Production-Ready Code**: Modular architecture with proper separation of concerns
-- **CLI Interface**: Easy-to-use command-line tools for training, evaluation, and inference
-- **Configuration Management**: YAML-based configuration for reproducible experiments
-- **Advanced Data Augmentation**: Domain-specific augmentations for leaf images
+*   **Modular Architecture**: Clean separation of data, modeling, training, and evaluation logic.
+*   **Multi-Model Support**: Supports **ResNet50**, **MobileNetV2**, and **EfficientNet-B0**.
+*   **Ensemble Learning**: Combines predictions from multiple models for improved accuracy.
+*   **Advanced Data Pipeline**: Uses `albumentations` for robust image augmentation and custom datasets compatible with PyTorch.
+*   **Experiment Tracking**: Integrated with **MLflow** to track hyperparameters, metrics, and model artifacts.
+*   **Hyperparameter Optimization**: Automated tuning using **Optuna**.
+*   **Model Interpretability**: **Grad-CAM** integration to visualize model focus areas.
+*   **Deployment**:
+    *   **FastAPI**: High-performance REST API for model serving.
+    *   **Gradio**: Interactive web UI for easy testing and demonstration.
+*   **Domain Knowledge**: Integrated disease knowledge base providing symptoms, treatments, and prevention tips.
+*   **Robustness**: Comprehensive unit and integration tests, plus CI/CD with GitHub Actions.
 
-### Model Architectures
-- **MobileNetV2**: Lightweight model optimized for efficiency
-- **ResNet50**: Deep residual network for high accuracy
-- **EfficientNet-B0**: Efficient scaling for balanced performance
-
-### Ensemble Strategies
-- **Soft Voting**: Average class probabilities (default)
-- **Hard Voting**: Majority vote on class predictions
-- **Weighted Voting**: Weighted average based on model performance
-
-## 📁 Project Structure
+## 📂 Directory Structure
 
 ```
 .
-├── src/                          # Source code
-│   ├── data/                     # Data loading and augmentation
-│   │   ├── dataset.py
-│   │   ├── loaders.py
-│   │   └── augmentations.py
-│   ├── models/                   # Model architectures
-│   │   ├── base_model.py
-│   │   ├── resnet.py
-│   │   ├── mobilenet.py
-│   │   ├── efficientnet.py
-│   │   └── ensemble.py
-│   ├── training/                 # Training utilities
-│   │   ├── trainer.py
-│   │   ├── optimizer.py
-│   │   └── scheduler.py
-│   ├── evaluation/               # Evaluation and metrics
-│   │   ├── metrics.py
-│   │   ├── visualizations.py
-│   │   └── reports.py
-│   └── utils/                    # Utility functions
-│       ├── device.py
-│       ├── seed.py
-│       ├── checkpoint.py
-│       └── logging.py
+├── apps/                         # Deployment applications
+│   ├── fastapi_app.py            # REST API
+│   └── gradio_app.py             # Web UI
 ├── configs/                      # Configuration files
-│   ├── base_config.yaml
-│   ├── training_config.yaml
-│   └── model_configs/
-├── scripts/                      # CLI scripts
-│   ├── train.py
-│   ├── evaluate.py
-│   └── inference.py
-├── tests/                        # Unit tests
-├── models/                       # Trained model checkpoints
+│   ├── base_config.yaml          # Default settings
+│   └── model_configs/            # Model-specific overrides
+├── data/                         # Dataset and knowledge base
+│   └── disease_info.json         # Disease details
+├── models/                       # Saved model checkpoints
 ├── logs/                         # Training logs
-├── results/                      # Evaluation results
-└── requirements.txt              # Python dependencies
+├── results/                      # Evaluation outputs (plots, reports)
+├── scripts/                      # Executable scripts
+│   ├── train.py                  # Training entry point
+│   ├── evaluate.py               # Evaluation entry point
+│   ├── interpret.py              # Grad-CAM visualization
+│   └── optimize_hyperparameters.py # Optuna optimization
+├── src/                          # Source code
+│   ├── data/                     # Data loading & augmentation
+│   ├── evaluation/               # Metrics & visualization
+│   ├── models/                   # Model architectures
+│   ├── training/                 # Trainer & optimizer logic
+│   └── utils/                    # Utilities (config, logging, etc.)
+└── tests/                        # Unit and integration tests
 ```
 
-## 🚀 Quick Start
+## 🛠️ Installation
 
-### Installation
+1.  **Clone the repository:**
+    ```bash
+    git clone <repository-url>
+    cd <repository-directory>
+    ```
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/Aditya-Kumar-Sahu/Ensemble-Powered-Deep-Learning-for-Rice-Leaf-Disease-Diagnosis.git
-   cd Ensemble-Powered-Deep-Learning-for-Rice-Leaf-Disease-Diagnosis
-   ```
+2.  **Create a virtual environment (recommended):**
+    ```bash
+    python -m venv .venv
+    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+    ```
 
-2. **Create a virtual environment**:
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+3.  **Install dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-3. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+## 📊 Usage
 
-4. **Set up Kaggle API credentials**:
-   - Place your `kaggle.json` in `~/.kaggle/`
-   - Download the dataset using the notebook or manually
+### 1. Data Preparation
+Ensure your dataset is located in the `data/` directory. The project expects a structure compatible with `torchvision.datasets.ImageFolder` (subdirectories for each class).
 
-### Training Models
-
-Train a single model:
-```bash
-python scripts/train.py \
-    --data-dir /path/to/dataset \
-    --model resnet50 \
-    --epochs 15 \
-    --batch-size 32 \
-    --lr 0.00005
-```
-
-Train all models for ensemble:
-```bash
-# Train ResNet50
-python scripts/train.py --data-dir /path/to/dataset --model resnet50
-
-# Train MobileNetV2
-python scripts/train.py --data-dir /path/to/dataset --model mobilenetv2
-
-# Train EfficientNet-B0
-python scripts/train.py --data-dir /path/to/dataset --model efficientnetb0
-```
-
-### Evaluation
-
-Evaluate a single model:
-```bash
-python scripts/evaluate.py \
-    --data-dir /path/to/dataset \
-    --model resnet50 \
-    --output-dir results
-```
-
-Evaluate ensemble:
-```bash
-python scripts/evaluate.py \
-    --data-dir /path/to/dataset \
-    --ensemble \
-    --output-dir results
-```
-
-### Inference
-
-Predict disease for a single image:
-```bash
-python scripts/inference.py \
-    --image /path/to/image.jpg \
-    --model resnet50 \
-    --classes "BacterialLeafBlight" "BrownSpot" "LeafSmut" ...
-```
-
-## 📊 Performance
-
-The ensemble model achieves superior performance compared to individual models:
-
-| Model | Accuracy | F1-Score | Parameters |
-|-------|----------|----------|------------|
-| MobileNetV2 | ~92% | ~0.91 | 2.2M |
-| ResNet50 | ~94% | ~0.93 | 23.5M |
-| EfficientNet-B0 | ~93% | ~0.92 | 4.0M |
-| **Ensemble (Soft Voting)** | **~95%** | **~0.94** | - |
-
-*Note: Actual performance depends on dataset and training configuration*
-
-## 🔧 Configuration
-
-Edit `configs/base_config.yaml` to customize training:
-
-```yaml
-data:
-  image_size: 224
-  batch_size: 32
-  val_split: 0.1
-
-training:
-  num_epochs: 15
-  learning_rate: 0.00005
-  optimizer: "adam"
-  scheduler: "cosine"
-
-ensemble:
-  voting: "soft"  # Options: soft, hard, weighted
-```
-
-## 📈 Results & Visualizations
-
-The system automatically generates:
-- **Confusion matrices** for each model and ensemble
-- **Training curves** (loss and accuracy over epochs)
-- **Classification reports** with per-class metrics
-- **Model comparison plots**
-
-Results are saved to the `results/` directory.
-
-## 🧪 Testing
-
-Run unit tests:
-```bash
-pytest tests/
-```
-
-Run with coverage:
-```bash
-pytest tests/ --cov=src --cov-report=html
-```
-
-## 🐳 Docker Support (Coming Soon)
+### 2. Training
+Train a model using the `train.py` script. You can specify the model architecture (`resnet50`, `mobilenetv2`, `efficientnetb0`) and data directory.
 
 ```bash
-# Build Docker image
-docker build -t rice-disease-classifier .
-
-# Run training
-docker run -v /path/to/data:/data rice-disease-classifier \
-    python scripts/train.py --data-dir /data
+python scripts/train.py --data-dir "data/Rice Leaf Disease Images" --model resnet50
 ```
 
-## 🌐 Deployment Options (Coming Soon)
+Configuration is handled via YAML files in `configs/`. You can modify `configs/base_config.yaml` or model-specific files in `configs/model_configs/`.
+
+### 3. Evaluation
+Evaluate a trained model or an ensemble of models.
+
+**Single Model:**
+```bash
+python scripts/evaluate.py --data-dir "data/Rice Leaf Disease Images" --model resnet50
+```
+
+**Ensemble:**
+```bash
+python scripts/evaluate.py --data-dir "data/Rice Leaf Disease Images" --ensemble
+```
+
+### 4. Hyperparameter Optimization
+Use Optuna to find the best hyperparameters.
+
+```bash
+python scripts/optimize_hyperparameters.py --data-dir "data/Rice Leaf Disease Images" --model resnet50 --n-trials 20
+```
+
+### 5. Model Interpretability (Grad-CAM)
+Visualize what the model is looking at.
+
+```bash
+python scripts/interpret.py --image_path "data/sample_image.jpg" --model resnet50
+```
+
+## 🚀 Deployment
 
 ### REST API (FastAPI)
+Start the API server:
 ```bash
-python api/app.py
+uvicorn apps.fastapi_app:app --reload
 ```
+Access the API docs at `http://127.0.0.1:8000/docs`.
 
 ### Web Application (Gradio)
+Launch the interactive UI:
 ```bash
 python apps/gradio_app.py
 ```
+Open your browser to the URL provided in the terminal (usually `http://127.0.0.1:7860`).
 
-### Streamlit Dashboard
+## 🧪 Testing & CI/CD
+
+Run the test suite:
 ```bash
-streamlit run apps/streamlit_app.py
+pytest
 ```
 
-## 📚 Dataset
+This project uses **GitHub Actions** for CI/CD. On every pull request, the workflow:
+*   Lints code with `flake8`.
+*   Checks formatting with `black`.
+*   Runs type checks with `mypy`.
+*   Executes the full test suite with `pytest`.
 
-The project uses the [Rice Leaf Disease Dataset](https://www.kaggle.com/datasets/maimunulkjisan/rice-leaf-dataset-from-mendeley-data) from Kaggle, which includes:
-- **15 disease classes**
-- **Thousands of labeled images**
-- **High-resolution leaf images**
+## 📈 MLOps
 
-## 🤝 Contributing
-
-We welcome contributions! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/YourFeature`)
-3. Commit your changes (`git commit -m 'Add YourFeature'`)
-4. Push to the branch (`git push origin feature/YourFeature`)
-5. Open a Pull Request
-
-### Development Guidelines
-- Follow PEP 8 style guide
-- Add type hints to functions
-- Write comprehensive docstrings
-- Include unit tests for new features
-- Update documentation as needed
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🙏 Acknowledgments
-
-- **Dataset**: Kaggle Rice Leaf Disease Dataset
-- **Frameworks**: PyTorch, torchvision
-- **Inspiration**: Agricultural AI for crop disease management
-
-## 📧 Contact
-
-For questions or feedback, please open an issue on GitHub or contact the maintainers.
-
-## 🗺️ Roadmap
-
-### Phase 1: Core Features (Completed)
-- [x] Modular code architecture
-- [x] Multiple model architectures
-- [x] Ensemble implementation
-- [x] CLI interface
-- [x] Configuration management
-
-### Phase 2: Advanced Features (In Progress)
-- [ ] Advanced augmentation (Albumentations, AutoAugment)
-- [ ] Hyperparameter optimization (Optuna)
-- [ ] Model interpretability (Grad-CAM)
-- [ ] Test-time augmentation
-
-### Phase 3: Deployment (Planned)
-- [ ] REST API (FastAPI)
-- [ ] Web application (Gradio/Streamlit)
-- [ ] Docker support
-- [ ] Mobile optimization (TFLite/CoreML)
-
-### Phase 4: MLOps (Planned)
-- [ ] Experiment tracking (MLflow/W&B)
-- [ ] CI/CD pipeline (GitHub Actions)
-- [ ] Model registry
-- [ ] Automated testing
-
-### Phase 5: Domain Features (Planned)
-- [ ] Disease knowledge base
-- [ ] Treatment recommendations
-- [ ] Geographic tracking
-- [ ] Multi-language support
-
-## 📖 Citation
-
-If you use this project in your research, please cite:
-
-```bibtex
-@software{rice_leaf_disease_classifier,
-  title = {Ensemble-Powered Deep Learning for Rice Leaf Disease Diagnosis},
-  author = {Aditya Kumar Sahu},
-  year = {2024},
-  url = {https://github.com/Aditya-Kumar-Sahu/Ensemble-Powered-Deep-Learning-for-Rice-Leaf-Disease-Diagnosis}
-}
+Experiments are tracked using **MLflow**. To view the UI:
+```bash
+mlflow ui
 ```
-
----
-
-**Made with ❤️ for sustainable agriculture**
+This will allow you to compare training runs, view metrics charts, and access logged artifacts.
