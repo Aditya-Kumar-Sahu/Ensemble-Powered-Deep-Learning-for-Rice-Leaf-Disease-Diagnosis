@@ -1,0 +1,58 @@
+---
+# Training Configuration
+
+# Models to train
+models:
+  - mobilenetv2
+  - resnet50
+  - efficientnetb0
+
+# Training hyperparameters
+training:
+  num_epochs: 15
+  learning_rate: 0.00005
+  weight_decay: 0.0
+
+  # Optimizer settings
+  optimizer:
+    name: "adam"
+    betas: [0.9, 0.999]
+    eps: 1.0e-08
+
+  # Learning rate scheduler
+  scheduler:
+    name: "cosine"
+    T_max: 15
+    eta_min: 0
+
+  # Loss function
+  criterion: "cross_entropy"
+
+# Data augmentation
+augmentation:
+  enabled: true
+  type: "standard"  # Options: standard, advanced
+  random_rotation: 20
+  color_jitter:
+    brightness: 0.2
+    contrast: 0.2
+    saturation: 0.2
+    hue: 0.1
+  horizontal_flip: 0.5
+
+# Early stopping
+early_stopping:
+  enabled: false
+  patience: 10
+  min_delta: 0.001
+
+# Checkpointing
+checkpointing:
+  save_best_only: true
+  save_frequency: 5  # Save every N epochs
+
+# Logging
+logging:
+  level: "INFO"
+  log_to_file: true
+  log_file: "logs/training.log"

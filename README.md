@@ -1,138 +1,144 @@
 # Ensemble-Powered Deep Learning for Rice Leaf Disease Diagnosis
 
-&#x20;
+A production-ready, full-stack machine learning system for classifying rice leaf diseases. This project has been refactored from a research notebook into a modular, scalable, and deployable application.
 
-## Project Description
+## 🚀 Features
 
-This repository contains a Jupyter Notebook that implements an end-to-end deep learning pipeline for **classifying rice leaf diseases** into 15 distinct categories. Leveraging PyTorch and torchvision, the notebook covers data loading, augmentation, model definition, training, and evaluation. Accurate disease detection on rice leaves can assist agronomists and farmers in early diagnosis, improving crop yields and reducing economic losses.
+*   **Modular Architecture**: Clean separation of data, modeling, training, and evaluation logic.
+*   **Multi-Model Support**: Supports **ResNet50**, **MobileNetV2**, and **EfficientNet-B0**.
+*   **Ensemble Learning**: Combines predictions from multiple models for improved accuracy.
+*   **Advanced Data Pipeline**: Uses `albumentations` for robust image augmentation and custom datasets compatible with PyTorch.
+*   **Experiment Tracking**: Integrated with **MLflow** to track hyperparameters, metrics, and model artifacts.
+*   **Hyperparameter Optimization**: Automated tuning using **Optuna**.
+*   **Model Interpretability**: **Grad-CAM** integration to visualize model focus areas.
+*   **Deployment**:
+    *   **FastAPI**: High-performance REST API for model serving.
+    *   **Gradio**: Interactive web UI for easy testing and demonstration.
+*   **Domain Knowledge**: Integrated disease knowledge base providing symptoms, treatments, and prevention tips.
+*   **Robustness**: Comprehensive unit and integration tests, plus CI/CD with GitHub Actions.
 
-## Features
+## 📂 Directory Structure
 
-* **Data Loading & Exploration**: Load and inspect the rice leaf image dataset using the Kaggle API (`kagglehub`).
-* **Data Augmentation**: Apply randomized transformations (rotations, flips, color jitter) to enhance model robustness.
-* **Model Architecture**: Define and customize pre-trained CNN backbones (e.g., ResNet) for classification.
-* **Training Loop**: Implement a modular training loop with configurable hyperparameters and real-time progress bars.
-* **Evaluation & Reporting**: Compute accuracy, loss curves, confusion matrix, and detailed classification reports.
-* **End-to-End Script**: Orchestrate the entire pipeline—from data download to model evaluation—with a single script.
+```
+.
+├── apps/                         # Deployment applications
+│   ├── fastapi_app.py            # REST API
+│   └── gradio_app.py             # Web UI
+├── configs/                      # Configuration files
+│   ├── base_config.yaml          # Default settings
+│   └── model_configs/            # Model-specific overrides
+├── data/                         # Dataset and knowledge base
+│   └── disease_info.json         # Disease details
+├── models/                       # Saved model checkpoints
+├── logs/                         # Training logs
+├── results/                      # Evaluation outputs (plots, reports)
+├── scripts/                      # Executable scripts
+│   ├── train.py                  # Training entry point
+│   ├── evaluate.py               # Evaluation entry point
+│   ├── interpret.py              # Grad-CAM visualization
+│   └── optimize_hyperparameters.py # Optuna optimization
+├── src/                          # Source code
+│   ├── data/                     # Data loading & augmentation
+│   ├── evaluation/               # Metrics & visualization
+│   ├── models/                   # Model architectures
+│   ├── training/                 # Trainer & optimizer logic
+│   └── utils/                    # Utilities (config, logging, etc.)
+└── tests/                        # Unit and integration tests
+```
 
-## Installation
+## 🛠️ Installation
 
-1. **Clone the repository**:
+1.  **Clone the repository:**
+    ```bash
+    git clone <repository-url>
+    cd <repository-directory>
+    ```
 
-   ```bash
-   git clone https://github.com/yourusername/rice-leaf-disease-classification.git
-   cd rice-leaf-disease-classification
-   ```
+2.  **Create a virtual environment (recommended):**
+    ```bash
+    python -m venv .venv
+    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+    ```
 
-2. **Create a virtual environment**:
+3.  **Install dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # on Windows: venv\Scripts\activate
-   ```
+## 📊 Usage
 
-3. **Install dependencies**:
+### 1. Data Preparation
+Ensure your dataset is located in the `data/` directory. The project expects a structure compatible with `torchvision.datasets.ImageFolder` (subdirectories for each class).
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+### 2. Training
+Train a model using the `train.py` script. You can specify the model architecture (`resnet50`, `mobilenetv2`, `efficientnetb0`) and data directory.
 
-4. **Obtain Kaggle API credentials**:
+```bash
+python scripts/train.py --data-dir "data/Rice Leaf Disease Images" --model resnet50
+```
 
-   * Place `kaggle.json` in `~/.kaggle/`.
+Configuration is handled via YAML files in `configs/`. You can modify `configs/base_config.yaml` or model-specific files in `configs/model_configs/`.
 
-## Usage
+### 3. Evaluation
+Evaluate a trained model or an ensemble of models.
 
-1. **Launch Jupyter Lab**:
+**Single Model:**
+```bash
+python scripts/evaluate.py --data-dir "data/Rice Leaf Disease Images" --model resnet50
+```
 
-   ```bash
-   jupyter lab
-   ```
+**Ensemble:**
+```bash
+python scripts/evaluate.py --data-dir "data/Rice Leaf Disease Images" --ensemble
+```
 
-2. **Open the notebook**:
+### 4. Hyperparameter Optimization
+Use Optuna to find the best hyperparameters.
 
-   * `Rice_Leafs_Disease_15.ipynb` in the root directory.
+```bash
+python scripts/optimize_hyperparameters.py --data-dir "data/Rice Leaf Disease Images" --model resnet50 --n-trials 20
+```
 
-3. **Run cells sequentially**:
+### 5. Model Interpretability (Grad-CAM)
+Visualize what the model is looking at.
 
-   * Start with Module 1 (Setup & Utility Functions) and follow through to End-to-End Script.
+```bash
+python scripts/interpret.py --image_path "data/sample_image.jpg" --model resnet50
+```
 
-4. **Example: Reproduce Training Plot**:
+## 🚀 Deployment
 
-   ```python
-   from notebook_utils import plot_metrics
+### REST API (FastAPI)
+Start the API server:
+```bash
+uvicorn apps.fastapi_app:app --reload
+```
+Access the API docs at `http://127.0.0.1:8000/docs`.
 
-   history = torch.load('checkpoints/history.pt')
-   plot_metrics(history, metrics=['loss', 'accuracy'])
-   ```
+### Web Application (Gradio)
+Launch the interactive UI:
+```bash
+python apps/gradio_app.py
+```
+Open your browser to the URL provided in the terminal (usually `http://127.0.0.1:7860`).
 
-## Notebook Walkthrough
+## 🧪 Testing & CI/CD
 
-### 1. Setup & Utility Functions
+Run the test suite:
+```bash
+pytest
+```
 
-* Configure device (CPU/GPU), seed for reproducibility.
-* Define helper functions: `set_seed`, `save_checkpoint`, metric calculators.
+This project uses **GitHub Actions** for CI/CD. On every pull request, the workflow:
+*   Lints code with `flake8`.
+*   Checks formatting with `black`.
+*   Runs type checks with `mypy`.
+*   Executes the full test suite with `pytest`.
 
-### 2. Data Loading
+## 📈 MLOps
 
-* Download dataset via Kaggle API using `kagglehub`.
-* Create `ImageFolder` datasets and `DataLoader` for training and validation.
-
-### 3. Data Augmentation & Transforms
-
-* Define `torchvision.transforms` pipeline:
-
-  * `RandomResizedCrop`, `RandomHorizontalFlip`, `ColorJitter`, `Normalize`.
-
-### 4. Model Definition
-
-* Load a pre-trained ResNet backbone from `torchvision.models`.
-* Replace the final fully connected layer for 15 classes.
-
-### 5. Training Loop
-
-* Train the model for configurable epochs.
-* Log training/validation loss and accuracy.
-* Utilize `tqdm` for progress.
-
-### 6. Evaluation Metrics & Reports
-
-* Plot loss/accuracy curves.
-* Compute and display a confusion matrix and classification report using `sklearn.metrics`.
-
-### 7. End-to-End Orchestration Script
-
-* Combine all steps into a single Python script (`run_pipeline.py`) for automated execution.
-
-## Dependencies
-
-| Package      | Version |
-| ------------ | ------- |
-| Python       | 3.8+    |
-| torch        | 1.13.0  |
-| torchvision  | 0.14.0  |
-| numpy        | 1.22.0  |
-| matplotlib   | 3.5.0   |
-| seaborn      | 0.11.2  |
-| tqdm         | 4.64.0  |
-| kagglehub    | 0.1.0   |
-| scikit-learn | 1.0.2   |
-
-## Results & Visuals
-
-&#x20;*Figure 1: Training and validation loss/accuracy over epochs.*
-
-&#x20;*Figure 2: Confusion matrix for test set predictions.*
-
-## Contributing
-
-We welcome contributions! Please:
-
-1. **Fork** the repository.
-2. **Create a new branch**: `git checkout -b feature/YourFeatureName`
-3. **Commit your changes**: `git commit -m 'Add some feature'`
-4. **Push to the branch**: `git push origin feature/YourFeatureName`
-5. **Open a Pull Request**.
-
-Feel free to open issues for bug reports or feature requests.
-
+Experiments are tracked using **MLflow**. To view the UI:
+```bash
+mlflow ui
+```
+This will allow you to compare training runs, view metrics charts, and access logged artifacts.
