@@ -6,24 +6,27 @@ Training script for rice leaf disease classification models.
 import argparse
 import sys
 from pathlib import Path
-import yaml
 import torch
+import mlflow
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.data import get_dataloaders
-from src.models import get_model
-from src.training import Trainer, get_optimizer, get_scheduler
-from src.utils import set_seed, get_device, setup_logger, ensure_dirs, load_config
-import mlflow
+from src.data import get_dataloaders  # noqa: E402
+from src.models import get_model  # noqa: E402
+from src.training import Trainer, get_optimizer, get_scheduler  # noqa: E402
+from src.utils import set_seed, get_device, setup_logger, ensure_dirs, load_config  # noqa: E402
 
 
 def main():
     """
-    Orchestrate end-to-end training of a rice leaf disease classification model using CLI arguments and a YAML configuration.
+    Orchestrate end-to-end training of a rice leaf disease classification model using
+    CLI arguments and a YAML configuration.
 
-    Loads configuration, applies command-line overrides for epochs, batch size, and learning rate, initializes randomness and logging, selects the compute device, ensures output directories, prepares data loaders and model, constructs optimizer, scheduler, and loss, runs the training loop via Trainer, and logs final metrics and model save location.
+    Loads configuration, applies command-line overrides for epochs, batch size, and learning rate,
+    initializes randomness and logging, selects the compute device, ensures output directories,
+    prepares data loaders and model, constructs optimizer, scheduler, and loss, runs the training
+    loop via Trainer, and logs final metrics and model save location.
     """
     parser = argparse.ArgumentParser(description="Train rice leaf disease classification models")
     parser.add_argument(

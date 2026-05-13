@@ -62,12 +62,18 @@ def plot_training_history(
     """
     Plot one or more training metrics (train vs validation) over epochs.
 
-    For each metric in `metrics`, looks for `train_<metric>` and `val_<metric>` keys in `history` and, if both are present, plots their values across epochs with labels, a title, legend, and grid. If `save_path` is provided, saves the figure to that path. The figure is displayed after plotting.
+    For each metric in `metrics`, looks for `train_<metric>` and `val_<metric>` keys in `history`
+    and, if both are present, plots their values across epochs with labels, a title, legend,
+    and grid. If `save_path` is provided, saves the figure to that path. The figure is
+    displayed after plotting.
 
     Parameters:
-        history (dict): Mapping containing training histories, expected keys like "train_loss", "val_loss", etc.
-        metrics (List[str]): Metrics to plot; for each metric the function looks for `train_<metric>` and `val_<metric>` in `history`.
-        save_path (Optional[str]): Path to save the generated figure; when omitted the figure is not saved.
+        history (dict): Mapping containing training histories, expected keys like
+            "train_loss", "val_loss", etc.
+        metrics (List[str]): Metrics to plot; for each metric the function looks for
+            `train_<metric>` and `val_<metric>` in `history`.
+        save_path (Optional[str]): Path to save the generated figure; when omitted the
+            figure is not saved.
         figsize (tuple): Matplotlib figure size.
     """
     num_metrics = len(metrics)

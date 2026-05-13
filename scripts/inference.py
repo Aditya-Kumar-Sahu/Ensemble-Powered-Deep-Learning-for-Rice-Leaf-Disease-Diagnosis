@@ -9,14 +9,13 @@ from pathlib import Path
 import yaml
 import torch
 from PIL import Image
-import numpy as np
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.models import get_model
-from src.data.augmentations import get_val_transforms
-from src.utils import get_device
+from src.models import get_model  # noqa: E402
+from src.data.augmentations import get_val_transforms  # noqa: E402
+from src.utils import get_device  # noqa: E402
 
 
 def load_config(config_path: str) -> dict:
@@ -161,7 +160,7 @@ def main():
     model.eval()
 
     # Get transform
-    transform = get_val_transforms(config["data"]["image_size"])
+    transform = get_val_transforms(config)
 
     # Make prediction
     print(f"Predicting image: {args.image}")

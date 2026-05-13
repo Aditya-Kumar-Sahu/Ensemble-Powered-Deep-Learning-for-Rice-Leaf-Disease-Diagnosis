@@ -6,22 +6,23 @@ import argparse
 import copy
 import sys
 from pathlib import Path
+from typing import Dict, Any
 import optuna
 import torch
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.data import get_dataloaders
-from src.models import get_model
-from src.training import Trainer, get_optimizer, get_scheduler
-from src.utils import set_seed, get_device, setup_logger, load_config
+from src.data import get_dataloaders  # noqa: E402
+from src.models import get_model  # noqa: E402
+from src.training import Trainer, get_optimizer, get_scheduler  # noqa: E402
+from src.utils import set_seed, get_device, load_config  # noqa: E402
 
 # Global variables for data and number of classes
 DATA_DIR = ""
 NUM_CLASSES = 0
-CLASS_NAMES = []
-BASE_CONFIG = {}
+CLASS_NAMES: list[str] = []
+BASE_CONFIG: Dict[str, Any] = {}
 
 
 def objective(trial: optuna.Trial) -> float:
@@ -92,7 +93,7 @@ def objective(trial: optuna.Trial) -> float:
     # Train model
     history = trainer.train(
         num_epochs=trial_config["training"]["num_epochs"],
-        save_dir=Path(trial_config["output"]["models_dir"]) / "optimization",
+        save_dir=str(Path(trial_config["output"]["models_dir"]) / "optimization"),
         model_name=f"{trial_config['model']['name']}_trial_{trial.number}",
     )
 

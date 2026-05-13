@@ -6,29 +6,32 @@ Evaluation script for rice leaf disease classification models.
 import argparse
 import sys
 from pathlib import Path
-import yaml
 import torch
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.data import get_dataloaders
-from src.models import get_model, predict_ensemble
-from src.evaluation import (
+from src.data import get_dataloaders  # noqa: E402
+from src.models import get_model, predict_ensemble  # noqa: E402
+from src.evaluation import (  # noqa: E402
     evaluate_model,
     predict_single,
     plot_confusion_matrix,
     generate_classification_report,
     print_model_summary,
 )
-from src.utils import set_seed, get_device, setup_logger, load_config
+from src.utils import set_seed, get_device, setup_logger, load_config  # noqa: E402
 
 
 def main():
     """
     Run the evaluation workflow for rice leaf disease classification models using command-line arguments.
 
-    Parses CLI options, loads configuration and dataset, evaluates either a single specified model or an ensemble of models, computes metrics, saves a confusion matrix image and a classification report to the output directory, and prints the classification report and model summary to stdout. Requires either the --model or --ensemble flag to be provided; uses --models-dir for checkpoints and --config for the YAML configuration.
+    Parses CLI options, loads configuration and dataset, evaluates either a single specified model or
+    an ensemble of models, computes metrics, saves a confusion matrix image and a classification report
+    to the output directory, and prints the classification report and model summary to stdout.
+    Requires either the --model or --ensemble flag to be provided; uses --models-dir for checkpoints
+    and --config for the YAML configuration.
     """
     parser = argparse.ArgumentParser(description="Evaluate rice leaf disease classification models")
     parser.add_argument(
@@ -99,7 +102,7 @@ def main():
         )
 
         # Evaluate
-        metrics = evaluate_model(y_true, y_pred, class_names)
+        evaluate_model(y_true, y_pred, class_names)
 
         # Plot confusion matrix
         plot_confusion_matrix(
@@ -136,7 +139,7 @@ def main():
         y_true, y_pred, y_probs = predict_single(model, val_loader, device)
 
         # Evaluate
-        metrics = evaluate_model(y_true, y_pred, class_names, y_probs)
+        evaluate_model(y_true, y_pred, class_names, y_probs)
 
         # Plot confusion matrix
         plot_confusion_matrix(

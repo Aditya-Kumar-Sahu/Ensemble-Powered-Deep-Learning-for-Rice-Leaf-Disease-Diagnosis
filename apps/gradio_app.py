@@ -7,14 +7,13 @@ from pathlib import Path
 import torch
 import gradio as gr
 import numpy as np
-from PIL import Image
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.models import get_model
-from src.utils import load_config, get_disease_info
-from src.data.augmentations import get_val_transforms
+from src.models import get_model  # noqa: E402
+from src.utils import load_config, get_disease_info  # noqa: E402
+from src.data.augmentations import get_val_transforms  # noqa: E402
 
 # --- Model and Config Loading ---
 # This section runs once at startup
@@ -77,15 +76,15 @@ def predict(image: np.ndarray) -> tuple:
         # Format disease info as Markdown
         info_md = f"""
         ## Disease Diagnosis: {info['name']}
-        
+
         **Description:** {info['description']}
-        
+
         **Symptoms:** {info['symptoms']}
-        
+
         **Cause:** {info['cause']}
-        
+
         **Treatment:** {info['treatment']}
-        
+
         **Prevention:** {info['prevention']}
         """
 
@@ -103,7 +102,10 @@ iface = gr.Interface(
     inputs=gr.Image(type="numpy", label="Upload a Rice Leaf Image"),
     outputs=[gr.Label(num_top_classes=3, label="Predictions"), gr.Markdown(label="Disease Information")],
     title="Rice Leaf Disease Diagnosis",
-    description="An interactive web app to diagnose rice leaf diseases. Upload an image to see the model's prediction and detailed disease information.",
+    description=(
+        "An interactive web app to diagnose rice leaf diseases. "
+        "Upload an image to see the model's prediction and detailed disease information."
+    ),
     examples=[
         # Add paths to example images if available
         # ["path/to/example1.jpg"],

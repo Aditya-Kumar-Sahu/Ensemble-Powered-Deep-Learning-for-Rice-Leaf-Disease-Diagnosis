@@ -112,12 +112,12 @@ def get_new_model(
 ) -> nn.Module:
     """
     Create a new model for classification.
-    
+
     Args:
         num_classes: Number of output classes
         pretrained: Whether to use pretrained weights
         dropout: Dropout rate for regularization
-        
+
     Returns:
         Model instance
     """
@@ -219,18 +219,18 @@ def train_model(
 ) -> dict:
     """
     Train a model on the dataset.
-    
+
     Args:
         model: PyTorch model to train
         train_loader: Data loader for training data
         epochs: Number of training epochs
-        
+
     Returns:
         Dictionary containing training history
-        
+
     Raises:
         ValueError: If epochs is less than 1
-        
+
     Examples:
         >>> model = get_model("resnet50", num_classes=15)
         >>> history = train_model(model, train_loader, epochs=5)

@@ -78,7 +78,8 @@ def test_get_efficientnet_b0(num_classes, input_tensor, batch_size):
 
 def test_get_model_factory(num_classes, input_tensor, batch_size):
     """
-    Verify that get_model constructs each supported architecture and that a forward pass produces outputs with shape (batch_size, num_classes).
+    Verify that get_model constructs each supported architecture and that a forward
+    pass produces outputs with shape (batch_size, num_classes).
 
     Parameters:
         num_classes (int): Number of output classes used to construct the model.

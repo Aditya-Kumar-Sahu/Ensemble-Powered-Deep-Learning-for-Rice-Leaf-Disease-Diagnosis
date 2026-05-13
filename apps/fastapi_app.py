@@ -14,9 +14,9 @@ from fastapi.responses import JSONResponse
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.models import get_model
-from src.utils import load_config, get_disease_info
-from src.data.augmentations import get_val_transforms
+from src.models import get_model  # noqa: E402
+from src.utils import load_config, get_disease_info  # noqa: E402
+from src.data.augmentations import get_val_transforms  # noqa: E402
 
 # --- Application Setup ---
 app = FastAPI(

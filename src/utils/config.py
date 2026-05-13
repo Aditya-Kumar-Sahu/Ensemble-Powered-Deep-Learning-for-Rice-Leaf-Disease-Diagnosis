@@ -2,10 +2,10 @@
 
 import yaml
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 
-def load_config(base_config_path: str = "configs/base_config.yaml", model_config_path: str = None) -> Dict[str, Any]:
+def load_config(base_config_path: str = "configs/base_config.yaml", model_config_path: Optional[str] = None) -> Dict[str, Any]:
     """
     Loads a base YAML configuration and merges a model-specific configuration on top.
 

@@ -6,7 +6,6 @@ import tempfile
 import os
 from PIL import Image
 import numpy as np
-import cv2  # For reading images in the tests as the dataset does
 
 from src.data.augmentations import get_train_transforms, get_val_transforms
 from src.data.loaders import get_dataloaders, RiceLeafDiseaseDataset

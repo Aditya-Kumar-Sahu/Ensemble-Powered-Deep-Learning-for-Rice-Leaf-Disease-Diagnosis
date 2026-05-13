@@ -13,10 +13,10 @@ import numpy as np
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.models import get_model
-from src.evaluation import generate_gradcam_overlay
-from src.utils import load_config
-from src.data.augmentations import get_val_transforms
+from src.models import get_model  # noqa: E402
+from src.evaluation import generate_gradcam_overlay  # noqa: E402
+from src.utils import load_config  # noqa: E402
+from src.data.augmentations import get_val_transforms  # noqa: E402
 
 
 def main():

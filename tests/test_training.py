@@ -6,7 +6,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 import tempfile
 import os
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 from src.training.trainer import Trainer, train_model
 from src.training.optimizer import get_optimizer

@@ -23,7 +23,8 @@ def clear_gpu_cache() -> None:
     """
     Free GPU memory resources by running garbage collection and clearing the CUDA cache when available.
 
-    This triggers a Python garbage collection pass and empties PyTorch's CUDA cache if CUDA is available; it has no CUDA-specific effect on systems without CUDA.
+    This triggers a Python garbage collection pass and empties PyTorch's CUDA cache
+    if CUDA is available; it has no CUDA-specific effect on systems without CUDA.
     """
     gc.collect()
     if torch.cuda.is_available():

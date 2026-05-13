@@ -17,10 +17,12 @@ def setup_logger(
     Parameters:
         name (str): Logger name to create or retrieve.
         level (int): Logging level applied to the logger and its handlers.
-        log_file (Optional[str]): Path to a file to write logs to; if provided, the file's parent directory will be created if it does not exist.
+        log_file (Optional[str]): Path to a file to write logs to; if provided, the file's
+            parent directory will be created if it does not exist.
 
     Returns:
-        logging.Logger: The configured logger instance with a StreamHandler writing to stdout and, when requested, a FileHandler writing to `log_file`.
+        logging.Logger: The configured logger instance with a StreamHandler writing to
+            stdout and, when requested, a FileHandler writing to `log_file`.
     """
     logger = logging.getLogger(name)
     logger.setLevel(level)

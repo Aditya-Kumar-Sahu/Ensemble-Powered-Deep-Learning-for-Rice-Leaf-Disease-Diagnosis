@@ -3,8 +3,7 @@
 import pytest
 import torch
 import numpy as np
-from unittest.mock import Mock, MagicMock, patch
-from sklearn.metrics import accuracy_score
+from unittest.mock import Mock, patch
 
 from src.evaluation.metrics import (
     calculate_metrics,

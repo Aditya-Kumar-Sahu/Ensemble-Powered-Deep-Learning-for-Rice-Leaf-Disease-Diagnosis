@@ -2,17 +2,16 @@
 
 import torch
 import numpy as np
-import cv2
 from pytorch_grad_cam import GradCAM
 from pytorch_grad_cam.utils.image import show_cam_on_image
-from typing import List
+from typing import Optional
 
 
 def generate_gradcam_overlay(
     model: torch.nn.Module,
     target_layer: torch.nn.Module,
     input_tensor: torch.Tensor,
-    target_category: int = None,
+    target_category: Optional[int] = None,
     use_cuda: bool = False,
 ) -> np.ndarray:
     """

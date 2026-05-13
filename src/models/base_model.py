@@ -1,7 +1,6 @@
 """Base model factory for creating different architectures."""
 
 import torch.nn as nn
-from typing import Optional
 
 from .mobilenet import get_mobilenet_v2
 from .resnet import get_resnet50

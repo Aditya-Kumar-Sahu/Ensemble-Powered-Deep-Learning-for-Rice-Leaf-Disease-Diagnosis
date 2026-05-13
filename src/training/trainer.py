@@ -6,12 +6,10 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-import numpy as np
 
 import mlflow
 import mlflow.pytorch
 from ..utils.checkpoint import (
-    save_checkpoint,
     save_history,
     ensure_dirs,
     count_parameters,
@@ -32,10 +30,11 @@ class Trainer:
         optimizer: torch.optim.Optimizer,
         device: Optional[torch.device] = None,
         scheduler: Optional[torch.optim.lr_scheduler._LRScheduler] = None,
-        config: Dict[str, Any] = None,
+        config: Optional[Dict[str, Any]] = None,
     ):
         """
-        Create a Trainer that manages training and validation loops, history tracking, device placement, and optional learning-rate scheduling.
+        Create a Trainer that manages training and validation loops, history tracking,
+        device placement, and optional learning-rate scheduling.
 
         Parameters:
             model: The PyTorch model to train.
@@ -58,7 +57,7 @@ class Trainer:
 
         self.model.to(self.device)
 
-        self.history = {
+        self.history: Dict[str, Any] = {
             "train_loss": [],
             "val_loss": [],
             "train_acc": [],
@@ -155,7 +154,8 @@ class Trainer:
         model_name: str = "model",
     ) -> Dict:
         """
-        Run training for a specified number of epochs, track metrics, save the best model checkpoint, and persist training history.
+        Run training for a specified number of epochs, track metrics, save the best model
+        checkpoint, and persist training history.
 
         Parameters:
             num_epochs (int): Number of epochs to run.
@@ -163,14 +163,15 @@ class Trainer:
             model_name (str): Base filename to use when saving the model and history (default "model").
 
         Returns:
-            history (Dict): Dictionary with per-epoch lists ('train_loss', 'val_loss', 'train_acc', 'val_acc', 'learning_rates')
-                and metadata fields ('training_time', 'params', 'best_val_acc').
+            history (Dict): Dictionary with per-epoch lists ('train_loss', 'val_loss',
+                'train_acc', 'val_acc', 'learning_rates') and metadata fields
+                ('training_time', 'params', 'best_val_acc').
         """
         ensure_dirs([save_dir, "logs"])
         best_val_acc = 0.0
         start_time = time.time()
 
-        with mlflow.start_run() as run:
+        with mlflow.start_run():
             log_params_from_config(self.config)
 
             for epoch in range(num_epochs):

@@ -11,7 +11,6 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
     f1_score,
-    confusion_matrix,
     roc_auc_score,
 )
 
@@ -22,7 +21,8 @@ def predict_single(
     device: torch.device,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
-    Run inference with a single PyTorch model over a validation DataLoader and collect labels, predictions, and predicted probabilities.
+    Run inference with a single PyTorch model over a validation DataLoader
+    and collect labels, predictions, and predicted probabilities.
 
     Returns:
         Tuple containing:
@@ -68,15 +68,19 @@ def calculate_metrics(
     Parameters:
         y_true (np.ndarray): Ground-truth integer class labels.
         y_pred (np.ndarray): Predicted integer class labels.
-        y_probs (Optional[np.ndarray]): Class probability estimates with shape (n_samples, n_classes). If provided, ROC-AUC (OvR) will be computed.
-        num_classes (Optional[int]): Number of classes. If omitted and `y_probs` is provided, the number of classes is inferred from `y_true`.
+        y_probs (Optional[np.ndarray]): Class probability estimates with shape (n_samples, n_classes).
+            If provided, ROC-AUC (OvR) will be computed.
+        num_classes (Optional[int]): Number of classes. If omitted and `y_probs` is provided, the
+            number of classes is inferred from `y_true`.
 
     Returns:
         Dict[str, float]: Dictionary containing:
             - "accuracy": overall accuracy.
             - "precision_macro", "recall_macro", "f1_macro": macro-averaged precision, recall, and F1.
-            - "precision_weighted", "recall_weighted", "f1_weighted": weighted averages for precision, recall, and F1.
-            - "roc_auc_ovr" (optional): macro-averaged ROC-AUC computed in a one-vs-rest fashion when `y_probs` is supplied.
+            - "precision_weighted", "recall_weighted", "f1_weighted": weighted averages for
+              precision, recall, and F1.
+            - "roc_auc_ovr" (optional): macro-averaged ROC-AUC computed in a one-vs-rest fashion
+              when `y_probs` is supplied.
     """
     metrics = {
         "accuracy": accuracy_score(y_true, y_pred),
@@ -114,10 +118,13 @@ def evaluate_model(
         y_true (np.ndarray): True class labels.
         y_pred (np.ndarray): Predicted class labels.
         class_names (list): Names of classes in the order corresponding to label indices.
-        y_probs (Optional[np.ndarray]): Prediction probabilities or scores for each class; when provided, ROC-AUC (OvR) will be computed if possible.
+        y_probs (Optional[np.ndarray]): Prediction probabilities or scores for each class;
+            when provided, ROC-AUC (OvR) will be computed if possible.
 
     Returns:
-        Dict[str, float]: Mapping of metric names to their values (includes accuracy, macro/weighted precision, recall, and F1). May include the key 'roc_auc_ovr' when `y_probs` is supplied and ROC-AUC computation succeeds.
+        Dict[str, float]: Mapping of metric names to their values (includes accuracy, macro/weighted
+            precision, recall, and F1). May include the key 'roc_auc_ovr' when `y_probs` is supplied
+            and ROC-AUC computation succeeds.
     """
     print("\n" + "=" * 60)
     print("EVALUATION REPORT")
@@ -126,7 +133,7 @@ def evaluate_model(
     # Calculate overall metrics
     metrics = calculate_metrics(y_true, y_pred, y_probs, len(class_names))
 
-    print(f"\nOverall Metrics:")
+    print("\nOverall Metrics:")
     print(f"  Accuracy     : {metrics['accuracy']:.4f}")
     print(f"  Precision    : {metrics['precision_macro']:.4f} (macro)")
     print(f"  Recall       : {metrics['recall_macro']:.4f} (macro)")
@@ -136,7 +143,7 @@ def evaluate_model(
         print(f"  ROC-AUC (OvR): {metrics['roc_auc_ovr']:.4f}")
 
     # Class-wise F1 scores
-    print(f"\nClass-wise F1 Scores:")
+    print("\nClass-wise F1 Scores:")
     class_f1 = f1_score(y_true, y_pred, average=None, zero_division=0)
     for cls, score in zip(class_names, class_f1):
         print(f"  {cls:<30}: {score:.4f}")

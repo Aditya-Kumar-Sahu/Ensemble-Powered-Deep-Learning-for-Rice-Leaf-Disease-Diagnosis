@@ -5,6 +5,8 @@ import torch
 import tempfile
 import os
 from pathlib import Path
+import logging
+import numpy as np
 
 from src.utils.device import get_device, clear_gpu_cache
 from src.utils.seed import set_seed
@@ -13,7 +15,10 @@ from src.utils.checkpoint import (
     save_checkpoint,
     load_checkpoint,
     count_parameters,
+    save_history,
+    load_history,
 )
+from src.utils.logging import setup_logger
 
 
 def test_get_device():
@@ -95,12 +100,6 @@ def test_count_parameters():
 # ============================================================================
 # Additional tests for logging.py and extended checkpoint functionality
 # ============================================================================
-
-import logging
-import numpy as np
-
-from src.utils.logging import setup_logger
-from src.utils.checkpoint import save_history, load_history
 
 
 class TestLogging:

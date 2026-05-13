@@ -9,10 +9,12 @@ import numpy as np
 
 def ensure_dirs(paths: Union[List[str], List[Path]]) -> None:
     """
-    Ensure each path in `paths` exists by creating missing directories, including any necessary parent directories.
+    Ensure each path in `paths` exists by creating missing directories, including
+    any necessary parent directories.
 
     Parameters:
-        paths (List[str] | List[Path]): Iterable of directory paths (strings or Path objects) to create if they do not already exist.
+        paths (List[str] | List[Path]): Iterable of directory paths (strings or
+            Path objects) to create if they do not already exist.
     """
     for path in paths:
         os.makedirs(path, exist_ok=True)
@@ -58,12 +60,16 @@ def load_checkpoint(
 
     Parameters:
         filepath (str | Path): Path to the checkpoint file.
-        model (torch.nn.Module, optional): If provided and the checkpoint contains a `model_state_dict`, load it into this model.
-        optimizer (torch.optim.Optimizer, optional): If provided and the checkpoint contains an `optimizer_state_dict`, load it into this optimizer.
-        device (torch.device, optional): Device to map loaded tensors to; defaults to CPU if not provided.
+        model (torch.nn.Module, optional): If provided and the checkpoint contains a
+            `model_state_dict`, load it into this model.
+        optimizer (torch.optim.Optimizer, optional): If provided and the checkpoint
+            contains an `optimizer_state_dict`, load it into this optimizer.
+        device (torch.device, optional): Device to map loaded tensors to; defaults
+            to CPU if not provided.
 
     Returns:
-        dict: The checkpoint dictionary loaded from disk (contains keys such as `epoch`, `model_state_dict`, `optimizer_state_dict`, and `metrics` when present).
+        dict: The checkpoint dictionary loaded from disk (contains keys such as `epoch`,
+            `model_state_dict`, `optimizer_state_dict`, and `metrics` when present).
     """
     if device is None:
         device = torch.device("cpu")

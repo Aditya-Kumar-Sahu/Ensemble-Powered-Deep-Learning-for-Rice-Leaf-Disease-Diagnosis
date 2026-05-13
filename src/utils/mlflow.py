@@ -1,10 +1,10 @@
 """MLflow utility functions."""
 
 import mlflow
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 
-def log_params_from_config(config: Dict[str, Any]) -> None:
+def log_params_from_config(config: Optional[Dict[str, Any]]) -> None:
     """
     Logs a nested dictionary of parameters to MLflow by flattening it.
 
