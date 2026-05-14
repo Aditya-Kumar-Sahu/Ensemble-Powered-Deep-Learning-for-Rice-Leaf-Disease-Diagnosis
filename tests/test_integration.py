@@ -87,8 +87,13 @@ model:
 
 def test_training_pipeline_integration(dummy_integration_dataset_dir, dummy_config_dir):
     """
-    Test the full training pipeline integration, including MLflow logging.
-    Ensures the script runs without errors and MLflow logs are created.
+    Run the end-to-end training pipeline in a temporary environment and verify MLflow and filesystem outputs.
+    
+    Executes the project's training script as a subprocess using the provided temporary dataset and config directories, isolates MLflow tracking to a temporary URI, and asserts that a training run and expected artifacts/logs are created. The test cleans up created model and log directories and restores the original MLflow tracking URI.
+    
+    Parameters:
+        dummy_integration_dataset_dir (str): Path to a temporary dataset root containing sample class subdirectories and images.
+        dummy_config_dir (str): Path to a temporary `configs` directory containing YAML configuration files.
     """
     # Set MLflow tracking URI to a temporary directory
     original_tracking_uri = mlflow.get_tracking_uri()
