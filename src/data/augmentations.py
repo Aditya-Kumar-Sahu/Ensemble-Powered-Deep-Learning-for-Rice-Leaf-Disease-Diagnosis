@@ -11,14 +11,17 @@ from albumentations.pytorch import ToTensorV2
 
 def get_train_transforms(config: Dict[str, Any]) -> A.Compose:
     """
-    Returns the augmentation pipeline for the training dataset.
-
-    Args:
-        config (Dict[str, Any]): A dictionary containing configuration
-                                  parameters, including image_size.
-
+    Builds an augmentation pipeline for training images.
+    
+    Parameters:
+        config (Dict[str, Any]): Configuration dictionary; must contain `config["data"]["image_size"]`
+            which specifies the target square image size.
+    
     Returns:
-        A.Compose: The training augmentation pipeline.
+        A.Compose: An Albumentations Compose pipeline that applies, in order, random resized crop
+            (scale 0.8–1.0), horizontal and vertical flips, rotation (±30°), color jitter,
+            coarse dropout, ImageNet normalization (mean=[0.485,0.456,0.406], std=[0.229,0.224,0.225]),
+            and converts the result to a tensor with ToTensorV2.
     """
     image_size = config["data"]["image_size"]
     return A.Compose(
@@ -37,14 +40,13 @@ def get_train_transforms(config: Dict[str, Any]) -> A.Compose:
 
 def get_val_transforms(config: Dict[str, Any]) -> A.Compose:
     """
-    Returns the augmentation pipeline for the validation dataset.
-
-    Args:
-        config (Dict[str, Any]): A dictionary containing configuration
-                                  parameters, including image_size.
-
+    Builds the image transformation pipeline used for validation.
+    
+    Parameters:
+        config (Dict[str, Any]): Configuration dictionary; must contain `config["data"]["image_size"]` specifying the target height/width.
+    
     Returns:
-        A.Compose: The validation augmentation pipeline.
+        albumentations.Compose: A composition that resizes images to (image_size, image_size), normalizes using ImageNet mean/std, and converts images to tensors.
     """
     image_size = config["data"]["image_size"]
     return A.Compose(

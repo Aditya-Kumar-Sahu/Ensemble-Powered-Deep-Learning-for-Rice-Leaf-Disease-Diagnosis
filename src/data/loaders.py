@@ -15,6 +15,13 @@ class RiceLeafDiseaseDataset(Dataset):
 
     def __init__(self, dataset, transform=None):
         # 'dataset' here can be an ImageFolder or a Subset thereof
+        """
+        Initialize the dataset wrapper that applies optional image transforms and exposes class names.
+        
+        Parameters:
+            dataset (Dataset or Subset): A torch dataset (typically `torchvision.datasets.ImageFolder`) or a `torch.utils.data.Subset` produced by `random_split`. If a `Subset` is provided, its underlying original dataset is used to obtain class names.
+            transform (callable, optional): An augmentation/transform callable (e.g., an Albumentations transform) that accepts a NumPy image via the keyword `image` and returns a dict containing the transformed image under the `"image"` key.
+        """
         self.dataset = dataset
         self.transform = transform
 
@@ -25,11 +32,28 @@ class RiceLeafDiseaseDataset(Dataset):
             self.classes = self.dataset.classes
 
     def __len__(self):
+        """
+        Get the number of samples in the wrapped dataset.
+        
+        Returns:
+            int: Number of samples in the wrapped dataset.
+        """
         return len(self.dataset)
 
     def __getitem__(self, idx):
         # Retrieve image and label using the dataset's (or Subset's) __getitem__
         # This correctly handles mapping from Subset index to original dataset
+        """
+        Return the image and label for the given index, converting the stored PIL image to a NumPy array and applying the optional transform.
+        
+        If `self.transform` is provided it is called as `self.transform(image=...)` and must return a dict containing the transformed image under the "image" key.
+        
+        Parameters:
+            idx (int): Index into the wrapped dataset or subset.
+        
+        Returns:
+            tuple: (image, label) where `image` is a NumPy ndarray (transformed if a transform is set) and `label` is the class index.
+        """
         img_pil, label = self.dataset[idx]  # This returns PIL Image by default from ImageFolder
 
         # Convert PIL Image to numpy array for albumentations
@@ -44,7 +68,21 @@ class RiceLeafDiseaseDataset(Dataset):
 
 def get_dataloaders(data_dir, config):
     """
-    Creates and returns the training and validation dataloaders.
+    Create training and validation PyTorch DataLoader objects and return class names.
+    
+    Parameters:
+        data_dir (str or os.PathLike): Path to the dataset root structured for torchvision.datasets.ImageFolder (class subdirectories).
+        config (dict): Configuration mapping containing at least the following keys under "data":
+            - "val_split": fraction of the dataset to use for validation (float between 0 and 1).
+            - "batch_size": batch size for both DataLoaders (int).
+            - "num_workers": number of worker processes for both DataLoaders (int).
+            Other config entries may be used by the train/validation transform builders.
+    
+    Returns:
+        tuple: (train_loader, val_loader, class_names)
+            - train_loader: DataLoader that yields batches of (image, label) from the training split with training transforms applied.
+            - val_loader: DataLoader that yields batches of (image, label) from the validation split with validation transforms applied.
+            - class_names: list of class folder names in the dataset, ordered by class index.
     """
     # ImageFolder with a dummy transform for initial loading, actual transforms applied later
     # The default ImageFolder transform would convert to Tensor, which albumentations doesn't expect
