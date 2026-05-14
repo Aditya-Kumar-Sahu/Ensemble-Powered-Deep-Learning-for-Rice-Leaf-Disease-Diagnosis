@@ -168,7 +168,7 @@ class Trainer:
                 ('training_time', 'params', 'best_val_acc').
         """
         ensure_dirs([save_dir, "logs"])
-        best_val_acc = 0.0
+        best_val_acc = -1.0
         start_time = time.time()
 
         with mlflow.start_run():
@@ -219,22 +219,22 @@ class Trainer:
                     best_val_acc = val_acc
                     save_path = f"{save_dir}/{model_name}.pth"
                     torch.save(self.model.state_dict(), save_path)
-                    print(f"✓ Saved best model to {save_path}")
+                    print(f"[OK] Saved best model to {save_path}")
 
             # Log the best model as an artifact
             mlflow.pytorch.log_model(self.model, "model", registered_model_name=model_name)
 
-        # Calculate total training time
-        total_time = time.time() - start_time
+            # Calculate total training time
+            total_time = time.time() - start_time
 
-        # Add metadata to history
-        self.history["training_time"] = total_time
-        self.history["params"] = count_parameters(self.model)
-        self.history["best_val_acc"] = best_val_acc
+            # Add metadata to history
+            self.history["training_time"] = total_time
+            self.history["params"] = count_parameters(self.model)
+            self.history["best_val_acc"] = best_val_acc
 
-        # Save history
-        history_path = save_history(self.history, model_name)
-        mlflow.log_artifact(history_path)
+            # Save history
+            history_path = save_history(self.history, model_name)
+            mlflow.log_artifact(history_path)
 
         print(f"\n{'='*50}")
         print(f"Training completed in {total_time:.2f}s")

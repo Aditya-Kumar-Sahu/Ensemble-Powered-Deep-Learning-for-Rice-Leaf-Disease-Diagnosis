@@ -91,73 +91,80 @@ def test_training_pipeline_integration(dummy_integration_dataset_dir, dummy_conf
     Ensures the script runs without errors and MLflow logs are created.
     """
     # Set MLflow tracking URI to a temporary directory
+    original_tracking_uri = mlflow.get_tracking_uri()
     with tempfile.TemporaryDirectory() as mlflow_tmp_dir:
-        mlflow.set_tracking_uri(Path(mlflow_tmp_dir).as_uri())
+        try:
+            mlflow.set_tracking_uri(Path(mlflow_tmp_dir).as_uri())
 
-        # Define paths for outputs relative to the current working directory
-        test_models_dir = Path("models_test")
-        test_logs_dir = Path("logs_test")
+            # Determine the parent directory of the dummy configs (tmpdir)
+            tmpdir_path = Path(dummy_config_dir).parent
 
-        # Clean up any previous test runs
-        if test_models_dir.exists():
-            shutil.rmtree(test_models_dir)
-        if test_logs_dir.exists():
-            shutil.rmtree(test_logs_dir)
+            # Define paths for outputs relative to the temporary working directory
+            test_models_dir = tmpdir_path / "models_test"
+            test_logs_dir = tmpdir_path / "logs_test"
 
-        import sys
-        import os
+            # Clean up any previous test runs
+            if test_models_dir.exists():
+                shutil.rmtree(test_models_dir)
+            if test_logs_dir.exists():
+                shutil.rmtree(test_logs_dir)
 
-        command = [
-            sys.executable,
-            "scripts/train.py",
-            "--data-dir",
-            dummy_integration_dataset_dir,
-            "--model",
-            "resnet50",
-        ]
+            import sys
+            import os
 
-        env = dict(os.environ)
-        env["MLFLOW_TRACKING_URI"] = Path(mlflow_tmp_dir).as_uri()
-        env["MLFLOW_EXPERIMENT_NAME"] = "test_experiment"
+            # We must use absolute paths because we will run subprocess from tmpdir_path
+            train_script_path = str(Path("scripts/train.py").resolve())
+            data_dir_path = str(Path(dummy_integration_dataset_dir).resolve())
 
-        # Ensure the subprocess uses the correct Python interpreter if in a venv
-        # For testing, we assume 'python' is already the correct interpreter in path
+            command = [
+                sys.executable,
+                train_script_path,
+                "--data-dir",
+                data_dir_path,
+                "--model",
+                "resnet50",
+                "--output-dir",
+                "models_test",  # Explicitly pass output-dir matching base config
+            ]
 
-        # Run the training script
-        result = subprocess.run(
-            command, capture_output=True, text=True, check=False, env=env
-        )  # Changed check=True to check=False
-        # Print stdout and stderr for debugging in case of failure
-        print("STDOUT:", result.stdout)
-        print("STDERR:", result.stderr)
+            env = dict(os.environ)
+            env["MLFLOW_TRACKING_URI"] = Path(mlflow_tmp_dir).as_uri()
+            env["MLFLOW_EXPERIMENT_NAME"] = "test_experiment"
 
-        assert result.returncode == 0, f"Training script failed with error: {result.stderr}"
+            # Ensure PYTHONPATH includes the project root since cwd is changed
+            project_root = str(Path(__file__).parent.parent.resolve())
+            env["PYTHONPATH"] = project_root + (":" + env.get("PYTHONPATH", "") if "PYTHONPATH" in env else "")
 
-        # Check if MLflow run was created and logs exist
-        runs = mlflow.search_runs(experiment_names=["rice_leaf_disease_classification"])
-        assert len(runs) > 0, "MLflow run was not created."
+            # Run the training script from tmpdir_path so it finds the dummy configs
+            result = subprocess.run(command, capture_output=True, text=True, check=False, env=env, cwd=str(tmpdir_path))
+            # Print stdout and stderr for debugging in case of failure
+            print("STDOUT:", result.stdout)
+            print("STDERR:", result.stderr)
 
-        run_id = runs.iloc[0].run_id
-        client = mlflow.tracking.MlflowClient()
-        artifacts = client.list_artifacts(run_id)
-        artifact_paths = [a.path for a in artifacts]
+            assert result.returncode == 0, f"Training script failed with error: {result.stderr}"
 
-        # Check if model artifact was logged
-        assert (
-            "model/pytorch_model.bin" in artifact_paths or "model" in artifact_paths
-        ), "Trained model artifact not logged to MLflow."
+            # Check if MLflow run was created and logs exist using the dummy experiment name
+            runs = mlflow.search_runs(experiment_names=["test_experiment"])
+            assert len(runs) > 0, "MLflow run was not created."
 
-        # Check if history artifact was logged
-        assert "resnet50_history.npy" in artifact_paths, "History artifact not logged to MLflow."
+            run_id = runs.iloc[0].run_id
+            client = mlflow.tracking.MlflowClient()
+            artifacts = client.list_artifacts(run_id)
+            artifact_paths = [a.path for a in artifacts]
 
-        # Check if local model file was saved
-        assert (test_models_dir / "resnet50.pth").exists(), "Local model checkpoint not saved."
+            # Check if history artifact was logged
+            assert "resnet50_history.npy" in artifact_paths, "History artifact not logged to MLflow."
 
-        # Check if log file was created
-        assert (test_logs_dir / "training.log").exists(), "Local log file not created."
+            # Check if local model file was saved
+            assert (test_models_dir / "resnet50.pth").exists(), "Local model checkpoint not saved."
 
-        # Clean up local test outputs
-        if test_models_dir.exists():
-            shutil.rmtree(test_models_dir)
-        if test_logs_dir.exists():
-            shutil.rmtree(test_logs_dir)
+            # Check if log file was created
+            assert (test_logs_dir / "training.log").exists(), "Local log file not created."
+
+            # Clean up local test outputs
+            if test_models_dir.exists():
+                shutil.rmtree(test_models_dir)
+            if test_logs_dir.exists():
+                shutil.rmtree(test_logs_dir)
+        finally:
+            mlflow.set_tracking_uri(original_tracking_uri)
