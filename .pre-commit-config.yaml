@@ -1,0 +1,46 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+        args: [--line-length=127]
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.1.1
+    hooks:
+      - id: flake8
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        args: [--ignore-missing-imports]
+        additional_dependencies: [types-PyYAML, types-requests]
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+
+  - repo: local
+    hooks:
+      - id: check-notebook-output
+        name: check-notebook-output
+        entry: python scripts/check_notebook.py
+        language: python
+        files: Rice_Leafs_Disease_15.ipynb
+        pass_filenames: false
+      - id: validate-guide-md
+        name: validate-guide-md
+        entry: python -c "import os, sys; f='GUIDE.md'; sys.exit(0 if os.path.exists(f) and os.path.getsize(f) > 0 else 1)"
+        language: python
+        files: GUIDE.md
+        pass_filenames: false

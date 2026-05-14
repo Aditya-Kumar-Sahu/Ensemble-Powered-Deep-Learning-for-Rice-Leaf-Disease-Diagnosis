@@ -89,6 +89,3 @@ dmypy.json
 GEMINI.md
 PROGRESS.md
 instructions.json
-
-# Pre-commit
-.pre-commit-config.yaml
