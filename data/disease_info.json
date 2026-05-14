@@ -1,0 +1,34 @@
+{
+    "Bacterialblight": {
+        "name": "Bacterial Blight",
+        "description": "A deadly bacterial disease caused by Xanthomonas oryzae pv. oryzae.",
+        "symptoms": "Water-soaked lesions on leaf edges that turn yellow and eventually white. Milky bacterial ooze (droplets) may appear on young lesions in the morning.",
+        "cause": "Bacterial pathogen Xanthomonas oryzae pv. oryzae.",
+        "treatment": "Drain the field. Apply copper-based fungicides if available. Use balanced fertilization (avoid excess Nitrogen).",
+        "prevention": "Use resistant varieties. Keep fields clean of weeds. Ensure proper spacing between plants."
+    },
+    "Blast": {
+        "name": "Rice Blast",
+        "description": "A fungal disease caused by Magnaporthe oryzae, affecting all parts of the rice plant.",
+        "symptoms": "Spindle-shaped spots with gray or white centers and brownish borders on leaves. Can also cause neck rot (neck blast).",
+        "cause": "Fungus Magnaporthe oryzae.",
+        "treatment": "Spray systemic fungicides like Tricyclazole or Isoprothiolane. Flood the field immediately after identifying symptoms.",
+        "prevention": "Avoid late planting. Treat seeds before sowing. Burn infected straw and stubble."
+    },
+    "Brownspot": {
+        "name": "Brown Spot",
+        "description": "A fungal disease that often indicates poor soil fertility.",
+        "symptoms": "Oval or circular brown spots with a gray or whitish center and reddish-brown margin.",
+        "cause": "Fungus Bipolaris oryzae (Cochliobolus miyabeanus).",
+        "treatment": "Apply fungicides like Mancozeb or Propiconazole. Correct soil nutrient deficiencies, especially Potassium and Silicon.",
+        "prevention": "Use certified disease-free seeds. Improve soil health with organic manure. Practice crop rotation."
+    },
+    "Tungro": {
+        "name": "Rice Tungro Disease",
+        "description": "A viral disease transmitted by green leafhoppers.",
+        "symptoms": "Plants are stunted and leaf color changes from yellow to orange. Panicle emergence is delayed or incomplete.",
+        "cause": "Rice Tungro Bacilliform Virus (RTBV) and Rice Tungro Spherical Virus (RTSV).",
+        "treatment": "There is no direct chemical cure for the virus. Control the vector (green leafhopper) using insecticides like Imidacloprid.",
+        "prevention": "Plant resistant varieties. Synchronize planting in the community. Remove infected plants (roguing) immediately."
+    }
+}
